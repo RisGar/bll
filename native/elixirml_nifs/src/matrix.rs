@@ -14,9 +14,9 @@ fn sigmoidf(n: f64) -> f64 {
   1.0 / (1.0 + f64::exp(-n))
 }
 
-fn sigmoid_primef(n: f64) -> f64 {
-  sigmoidf(n) * (1.0 - sigmoidf(n))
-}
+// fn sigmoid_primef(n: f64) -> f64 {
+//   sigmoidf(n) * (1.0 - sigmoidf(n))
+// }
 
 const RELU_FACTOR: f64 = 0.01;
 
@@ -28,13 +28,13 @@ fn leaky_reluf(n: f64) -> f64 {
   }
 }
 
-fn leaky_relu_primef(n: f64) -> f64 {
-  if n > 0.0 {
-    1.0
-  } else {
-    RELU_FACTOR
-  }
-}
+// fn leaky_relu_primef(n: f64) -> f64 {
+//   if n > 0.0 {
+//     1.0
+//   } else {
+//     RELU_FACTOR
+//   }
+// }
 
 pub fn random(rows: usize, cols: usize) -> Matrix {
   let mat_size = rows * cols;
@@ -55,23 +55,29 @@ pub fn random(rows: usize, cols: usize) -> Matrix {
 }
 
 pub fn fill(rows: usize, cols: usize, value: f64) -> Matrix {
-  let mat_size = rows * cols;
-
   Matrix {
     rows,
     cols,
-    nums: vec![value; mat_size],
+    nums: vec![value; rows * cols],
   }
 }
 
 pub fn fill_vals(rows: usize, cols: usize, vals: Vec<f64>) -> Matrix {
-  let mat_size = rows * cols;
-  assert!(vals.len() == mat_size);
+  assert!(vals.len() == rows * cols);
   Matrix {
     rows,
     cols,
     nums: vals,
   }
+}
+
+// TODO: Implement softmax
+pub fn softmax(mut mat: Matrix) -> Matrix {
+  for n in mat.nums.iter_mut() {
+    *n = sigmoidf(*n);
+  }
+
+  mat
 }
 
 pub fn sig(mut mat: Matrix) -> Matrix {

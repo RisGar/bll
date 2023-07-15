@@ -16,6 +16,10 @@ fn mat_fill_vals(rows: u32, cols: u32, values: Vec<f64>) -> Matrix {
   matrix::fill_vals(rows as usize, cols as usize, values)
 }
 #[rustler::nif]
+fn mat_softmax(mat: Matrix) -> Matrix {
+  matrix::softmax(mat)
+}
+#[rustler::nif]
 fn mat_sig(mat: Matrix) -> Matrix {
   matrix::sig(mat)
 }
@@ -31,11 +35,11 @@ fn mat_sum(a: Matrix, b: Matrix) -> Matrix {
 fn mat_prod(a: Matrix, b: Matrix) -> Matrix {
   matrix::prod(a, b)
 }
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyCpu")]
 fn mat_shuffle_rows(a: Matrix, b: Matrix) -> Vec<Matrix> {
   matrix::shuffle_rows(a, b)
 }
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyCpu")]
 fn mat_batch(mat: Matrix, batch_size: usize) -> Vec<Matrix> {
   matrix::batch(mat, batch_size)
 }
@@ -50,6 +54,7 @@ rustler::init!(
     mat_rand,
     mat_fill,
     mat_fill_vals,
+    mat_softmax,
     mat_sig,
     mat_relu,
     mat_sum,

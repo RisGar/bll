@@ -1,6 +1,7 @@
 defmodule ElixirML.Matrix do
   alias ElixirML.NIFs
   alias ElixirML.Matrix
+  alias ElixirML.Layer
 
   defstruct [:rows, :cols, :nums]
 
@@ -26,7 +27,7 @@ defmodule ElixirML.Matrix do
   def fill(cols, values) when is_integer(cols) and is_list(values),
     do: NIFs.mat_fill_vals(1, cols, values)
 
-  @spec activate(%Matrix{}, :relu | :sigmoid | :softmax) :: %Matrix{}
+  @spec activate(%Matrix{}, Layer.activation()) :: %Matrix{}
   @doc ~S"Applies an activation function to every value in a matrix"
   def activate(%Matrix{} = mat, act) when is_atom(act) do
     case act do

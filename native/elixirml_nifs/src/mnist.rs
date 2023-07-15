@@ -100,12 +100,10 @@ fn load_test_labels() -> Matrix {
 }
 
 pub fn load() -> Vec<Matrix> {
-  let res = vec![
+  vec![
     load_train_images(),
     load_test_images(),
     load_train_labels(),
     load_test_labels(),
-  ];
-  assert!(res.len() == 4);
-  res
+  ]
 }

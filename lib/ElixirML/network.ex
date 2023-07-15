@@ -1,27 +1,30 @@
 defmodule ElixirML.Network do
   alias ElixirML.Network
   alias ElixirML.Matrix
-  alias ElixirML.MNIST
+  # alias ElixirML.MNIST
   alias ElixirML.Layer
 
   @enforce_keys [:layers, :loss, :optimiser]
   defstruct [:layers, :loss, :optimiser, :weights, :biases]
 
-  def feedforward(network, features, i \\ 0) when is_struct(network) and is_integer(i) do
-    if i == length(network.size) - 1 do
-      network
-    else
-      next_features =
-        Matrix.prod(features, Enum.at(network.weights, i))
-        |> Matrix.sum(Enum.at(network.biases, i))
-        |> Matrix.activate(network.activation)
+  @type loss :: :cross_entropy | :quadratic
+  @type optimiser :: :adamw
 
-      feedforward(
-        network,
-        next_features,
-        i + 1
-      )
-    end
+  def feedforward(network, features, i \\ 0)
+
+  def feedforward(network, _features, i) when i == length(network.size), do: network
+
+  def feedforward(network, features, i) when is_struct(network) and is_integer(i) do
+    next_features =
+      Matrix.prod(features, Enum.at(network.weights, i))
+      |> Matrix.sum(Enum.at(network.biases, i))
+      |> Matrix.activate(network.activation)
+
+    feedforward(
+      network,
+      next_features,
+      i + 1
+    )
   end
 
   defp each_batch(network, batched_images, batched_labels, batch_nums, i \\ 0)
@@ -33,15 +36,15 @@ defmodule ElixirML.Network do
     images = Enum.at(batched_images, i)
     labels = Enum.at(batched_labels, i)
 
-    # IO.inspect(images)
-    # IO.inspect(labels)
+    IO.inspect(images)
+    IO.inspect(labels)
 
-    n = 0
+    # n = 0
 
-    MNIST.print(
-      Enum.slice(images.nums, (n * 28 * 28)..((n + 1) * 28 * 28 - 1)),
-      Enum.slice(labels.nums, (n * 10)..((n + 1) * 10 - 1))
-    )
+    # MNIST.print(
+    #   Enum.slice(images.nums, (n * 28 * 28)..((n + 1) * 28 * 28 - 1)),
+    #   Enum.slice(labels.nums, (n * 10)..((n + 1) * 10 - 1))
+    # )
 
     each_batch(network, batched_images, batched_labels, batch_nums, i + 1)
   end
@@ -63,20 +66,21 @@ defmodule ElixirML.Network do
     each_epoch(network, images, labels, epochs, batch_size, i + 1)
   end
 
+  alias ElixirML.Network
+  @spec train(%Network{}, %Matrix{}, %Matrix{}, pos_integer, pos_integer) :: %Network{}
   def train(network, images, labels, epochs, batch_size)
       when is_struct(network) and is_struct(images) and is_struct(labels) and is_integer(epochs) and
              is_integer(batch_size) do
-    # for each epoch:
-    #   batches = batch_nif;
-    #   for batch in batches:
-    #     batch_train;
-    #   shuffle;
-
     each_epoch(network, images, labels, epochs, batch_size)
-
-    # %Network{network | features: [images], targets: labels}
   end
 
+  @spec init(nonempty_list(%Layer{}), loss, optimiser) :: %ElixirML.Network{
+          layers: nonempty_list(%Layer{}),
+          loss: loss,
+          optimiser: optimiser,
+          weights: nonempty_list(%Matrix{}),
+          biases: nonempty_list(%Matrix{})
+        }
   def init(layers, loss, optimiser)
       # length > 2, because we need an input, a linear layer and an activation layer
       when is_list(layers) and length(layers) > 2 and is_atom(loss) and is_atom(optimiser) do
@@ -86,8 +90,8 @@ defmodule ElixirML.Network do
       layers: layers,
       loss: loss,
       optimiser: optimiser,
-      weights: Enum.zip(size, Enum.drop(size, 1)) |> Enum.map(&Matrix.rand/1),
-      biases: Enum.drop(size, 1) |> Enum.map(&Matrix.rand/1)
+      weights: size |> Enum.zip(Enum.drop(size, 1)) |> Enum.map(&Matrix.rand/1),
+      biases: size |> Enum.drop(1) |> Enum.map(&Matrix.rand/1)
     }
   end
 end
