@@ -1,10 +1,11 @@
 defmodule ElixirML.MNIST do
   alias ElixirML.NIFs
-  alias ElixirML.Matrix
+  import ExUnit.Assertions
 
   @filename "priv/data/mnist.bin"
 
-  @spec load :: nonempty_list(%Matrix{})
+  @doc ~S"Loads the matrix from a binary file, loading it through the NIF should it not already exist"
+  @spec load :: ElixirML.matrices()
   def load do
     case File.read(@filename) do
       {:ok, binary} -> :erlang.binary_to_term(binary)
@@ -12,7 +13,8 @@ defmodule ElixirML.MNIST do
     end
   end
 
-  @spec save(nonempty_list(%Matrix{})) :: nil
+  @doc ~S"Saves the matrix to a binary file, should it not already exist"
+  @spec save(ElixirML.matrices()) :: nil
   def save(data) do
     case File.read(@filename) do
       {:ok, _} ->
@@ -26,9 +28,12 @@ defmodule ElixirML.MNIST do
   end
 
   @doc ~S"Prints the image to the terminal in 24 colours"
-  @spec print(nonempty_list(float), nonempty_list(float), nonempty_list(String.t())) :: nil
-  def print(image, label, label_list)
-      when length(image) == 28 * 28 and length(label) == 10 and length(label_list) == 10 do
+  @spec print(ElixirML.mat_elems(), ElixirML.mat_elems(), nonempty_list(String.t())) :: nil
+  def print(image, label, label_list) do
+    assert(length(image) == 28 * 28)
+    assert(length(label) == 10)
+    assert(length(label_list) == 10)
+
     for i <- 1..(28 * 28) do
       case Enum.at(image, i - 1) do
         n when n >= 23 / 24 -> IO.write(IO.ANSI.color_background(255) <> "  ")

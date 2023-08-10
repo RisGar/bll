@@ -6,31 +6,25 @@ defmodule Mix.Tasks.Fashion do
   alias ElixirML.MNIST
   alias ElixirML.Layer
   alias ElixirML.Network
-  alias ElixirML.Matrix
 
   @impl Mix.Task
   def run(_args) do
     image_size = 28 * 28
 
     mnist =
-      [
-        train_images = %Matrix{},
-        _test_images = %Matrix{},
-        train_labels = %Matrix{},
-        _test_labels = %Matrix{}
-      ] =
+      [train_images, _test_images, train_labels, _test_labels] =
       MNIST.load()
 
     MNIST.save(mnist)
 
     layers = [
-      %Layer{type: :input, size: image_size},
-      %Layer{type: :linear, size: 128},
-      %Layer{type: :activation, activation: :relu},
-      %Layer{type: :linear, size: 128},
-      %Layer{type: :activation, activation: :relu},
-      %Layer{type: :linear, size: 10},
-      %Layer{type: :activation, activation: :softmax}
+      %Layer{layer_type: :input, size: image_size},
+      %Layer{layer_type: :linear, size: 128},
+      %Layer{layer_type: :activation, activation: :relu},
+      %Layer{layer_type: :linear, size: 128},
+      %Layer{layer_type: :activation, activation: :relu},
+      %Layer{layer_type: :linear, size: 10},
+      %Layer{layer_type: :activation, activation: :softmax}
     ]
 
     Network.init(
