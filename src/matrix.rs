@@ -1,4 +1,7 @@
-use std::ffi::{c_float, c_int};
+use std::{
+  ffi::{c_float, c_int},
+  fmt::Display,
+};
 
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};

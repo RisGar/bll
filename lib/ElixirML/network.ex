@@ -100,20 +100,4 @@ defmodule ElixirML.Network do
 
     each_epoch(network, images, labels, epochs, batch_size)
   end
-
-  @spec init(nonempty_list(Layer.t()), loss, optimiser) :: Network.t()
-  def init(layers, loss, optimiser) do
-    # length > 2, because we need an input, a linear layer and an activation layer
-    assert(length(layers) > 2)
-
-    size = Enum.map(layers, fn %Layer{size: size} -> size end) |> Enum.filter(& &1)
-
-    %Network{
-      layers: layers,
-      loss: loss,
-      optimiser: optimiser,
-      weights: size |> Enum.zip(Enum.drop(size, 1)) |> Enum.map(&Matrix.rand/1),
-      biases: size |> Enum.drop(1) |> Enum.map(&Matrix.rand/1)
-    }
-  end
 end

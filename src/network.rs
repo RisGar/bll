@@ -19,7 +19,7 @@ impl Network {
     let mut network_size: Vec<usize> = vec![];
     for layer in layers.iter() {
       match layer {
-        Layer::Number(n) => network_size.push(n.size),
+        Layer::Number(_, size) => network_size.push(*size),
         Layer::Activation(_) => (),
       }
     }
