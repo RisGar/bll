@@ -32,7 +32,6 @@ defmodule ElixirML.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.29.4", only: :dev, runtime: false},
-      {:commitlint, "~> 0.1.2", only: :dev, runtime: false},
       {:rustler, "~> 0.29.1"}
     ]
   end

@@ -1,3 +1,5 @@
+% !TEX program = sepdflatexmk
+
 \documentclass[10pt,titlepage]{article}
 % \usepackage[usenames]{color} %used for font color
 \usepackage{amssymb} %maths
@@ -11,7 +13,7 @@
 \usepackage{charter} % text font
 \usepackage{sourcecodepro} % code font
 \usepackage[a4paper]{geometry}
-\usepackage[notes,backend=biber]{biblatex-chicago}
+\usepackage[style=apa,backend=biber]{biblatex}
 
 % BEGIN styling
 \definecolor{bg}{rgb}{0.157,0.173,0.204}
@@ -42,11 +44,12 @@
 
 \section{Implementation}
 
-\inputminted[bgcolor=bg]{c}{../src/ml.c}
+\inputminted[bgcolor=bg]{c}{../native/elixirml_nifs/src/lib.rs}
 
 Das wurde so gesagt \autocite{nielsen_neural_2015}.
 
-\printbibliography[heading=bibintoc]
+\printbibliography[heading=bibintoc,
+  title={Literaturverweise}]
 
 \end{document}
 % END content

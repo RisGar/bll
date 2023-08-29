@@ -1,0 +1,18 @@
+[package]
+name = "bll"
+version = "0.1.0"
+edition = "2021"
+license = "EUPL-1.2"
+readme = "README.md"
+authors = ["Rishab garg <contact@rishab-garg.me>"]
+homepage = "https://github.com/RisGar/elixir_ml"
+repository = "https://github.com/RisGar/elixir_ml"
+build = "build.rs"
+links = "Accelerate.framework"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+rand_distr = "0.4.3"
+clap = { version = "4.4.1", features = ["derive"] }
