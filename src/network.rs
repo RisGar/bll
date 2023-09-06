@@ -1,4 +1,7 @@
-use crate::{layer::Layer, matrix::Matrix};
+use crate::{
+  layer::{Layer, LayerType},
+  matrix::Matrix,
+};
 
 #[derive(Debug)]
 pub struct Network {
@@ -13,24 +16,17 @@ impl Network {
   pub fn new(layers: Vec<Layer>, loss: Loss, optimiser: Optimiser) -> Self {
     // Wir brauchen mindestens einen Input Layer, einen Activation Layer und einen Output Layer
     assert!(layers.len() > 2);
+    assert!(layers[0].0 == LayerType::Input);
 
-    // Wir filtern die Layer nach "echten" Layern, also nicht Activation Layern, um einen Vektor mit den größen
-    // aller Layer zu erhalten
-    let mut network_size: Vec<usize> = vec![];
-    for layer in layers.iter() {
-      match layer {
-        Layer::Number(_, size) => network_size.push(*size),
-        Layer::Activation(_) => (),
-      }
-    }
+    let layer_sizes: Vec<usize> = layers.iter().map(|layer| layer.1).collect();
 
-    let weights: Vec<Matrix> = network_size
+    let weights: Vec<Matrix> = layer_sizes
       .iter()
-      .zip(network_size.iter().skip(1))
+      .zip(layer_sizes.iter().skip(1))
       .map(|(rows, cols): (&usize, &usize)| Matrix::random(*rows, *cols))
       .collect();
 
-    let biases: Vec<Matrix> = network_size
+    let biases: Vec<Matrix> = layer_sizes
       .iter()
       .skip(1)
       .map(|cols: &usize| Matrix::random(1, *cols))
@@ -43,6 +39,19 @@ impl Network {
       weights,
       biases,
     }
+  }
+
+  pub fn feedforward(&self, mut activations: Matrix) -> Matrix {
+    for i in 0..self.layers.len() - 1 {
+      activations = Matrix::multiply(&activations, &self.weights[i]);
+      activations = Matrix::add(&activations, &self.biases[i]);
+
+      if let Some(activation) = &self.layers[i + 1].2 {
+        activations = Matrix::activate(&mut activations, activation);
+      }
+    }
+
+    activations
   }
 }
 
