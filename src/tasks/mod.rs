@@ -1,2 +1,2 @@
-pub mod fashion;
+pub mod mnist;
 pub mod test;
