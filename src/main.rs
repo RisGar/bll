@@ -9,7 +9,7 @@ mod tasks;
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 enum Task {
   /// Fashion MNIST Dataset
-  Fashion,
+  Mnist,
   /// Test Script
   Test,
 }
@@ -26,7 +26,7 @@ struct Args {
 fn main() {
   let args = Args::parse();
   match args.task {
-    Task::Fashion => tasks::fashion::run(),
+    Task::Mnist => tasks::mnist::run(),
     Task::Test => tasks::test::run(),
   }
 }
