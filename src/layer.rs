@@ -1,11 +1,9 @@
 #[derive(Debug)]
-pub enum Layer {
-  Number(LayerType, usize),
-  Activation(ActivationType),
-}
+pub struct Layer(pub LayerType, pub usize, pub Option<ActivationType>);
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum LayerType {
+  Input,
   Dense,
 }
 
