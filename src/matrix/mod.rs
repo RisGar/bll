@@ -1,46 +1,17 @@
-use std::{
-  ffi::{c_float, c_int},
-  fmt::Display,
-};
-
+use crate::layer::ActivationType;
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
+use serde::{Deserialize, Serialize};
+use std::ffi::{c_float, c_int};
 
-use crate::layer::ActivationType;
+pub mod metal;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Matrix {
   pub rows: usize,
   pub cols: usize,
   pub nums: Vec<f32>,
 }
-
-fn sigmoidf(n: f32) -> f32 {
-  1.0 / (1.0 + f32::exp(-n))
-}
-
-// fn sigmoid_primef(n: f32) -> f32 {
-//   sigmoidf(n) * (1.0 - sigmoidf(n))
-// }
-
-// relu becomes unleaky when factor is 0.0
-const RELU_FACTOR: f32 = 0.01;
-
-fn leaky_reluf(n: f32) -> f32 {
-  if n > 0.0 {
-    n
-  } else {
-    RELU_FACTOR * n
-  }
-}
-
-// fn leaky_relu_primef(n: f32) -> f32 {
-//   if n > 0.0 {
-//     1.0
-//   } else {
-//     RELU_FACTOR
-//   }
-// }
 
 impl Matrix {
   pub fn random(rows: usize, cols: usize) -> Matrix {
@@ -61,7 +32,7 @@ impl Matrix {
     mat
   }
 
-  pub fn fill(rows: usize, cols: usize, value: f32) -> Matrix {
+  pub fn fill_scalar(rows: usize, cols: usize, value: f32) -> Matrix {
     Matrix {
       rows,
       cols,
@@ -69,7 +40,7 @@ impl Matrix {
     }
   }
 
-  pub fn fill_vals(rows: usize, cols: usize, vals: Vec<f32>) -> Matrix {
+  pub fn fill_vector(rows: usize, cols: usize, vals: Vec<f32>) -> Matrix {
     assert!(vals.len() == rows * cols);
     Matrix {
       rows,
@@ -78,22 +49,21 @@ impl Matrix {
     }
   }
 
-  pub fn activate(mut mat: Matrix, activation: ActivationType) -> Matrix {
+  pub fn activate(mat: &mut Matrix, activation: &ActivationType) -> Matrix {
     let func: fn(f32) -> f32 = match activation {
       ActivationType::Relu => leaky_reluf,
       ActivationType::Sigmoid => sigmoidf,
-      // TODO implement softmax
-      ActivationType::Softmax => sigmoidf,
+      ActivationType::Softmax => todo!("implement softmax"),
     };
 
     for n in mat.nums.iter_mut() {
       *n = func(*n);
     }
 
-    mat
+    mat.to_owned()
   }
 
-  pub fn sum(a: Matrix, b: Matrix) -> Matrix {
+  pub fn add(a: &Matrix, b: &Matrix) -> Matrix {
     assert!(a.rows == b.rows);
     assert!(a.cols == b.cols);
     let mat_size = a.rows * a.cols;
@@ -111,7 +81,7 @@ impl Matrix {
     mat
   }
 
-  pub fn prod(a: Matrix, b: Matrix) -> Matrix {
+  pub fn multiply(a: &Matrix, b: &Matrix) -> Matrix {
     assert!(a.cols == b.rows);
     let mat_size = a.rows * b.cols;
 
@@ -122,12 +92,14 @@ impl Matrix {
     };
 
     #[repr(C)]
+    #[allow(dead_code)]
     pub enum CblasLayout {
       RowMajor = 101,
       ColMajor = 102,
     }
 
     #[repr(C)]
+    #[allow(dead_code)]
     pub enum CblasTranspose {
       NoTrans = 111,
       Trans = 112,
@@ -175,7 +147,7 @@ impl Matrix {
     mat
   }
 
-  pub fn shuffle_rows(mut a: Matrix, mut b: Matrix) -> Vec<Matrix> {
+  pub fn shuffle_rows(a: &mut Matrix, b: &mut Matrix) {
     assert!(a.rows == b.rows);
     for i in 0..a.rows {
       let mut rng = rand::thread_rng();
@@ -188,8 +160,6 @@ impl Matrix {
         b.nums.swap(i * b.cols + k, j * b.cols + k);
       }
     }
-
-    vec![a, b]
   }
 
   pub fn batch(mat: Matrix, batch_size: usize) -> Vec<Matrix> {
@@ -214,3 +184,30 @@ impl Matrix {
     res
   }
 }
+
+fn sigmoidf(n: f32) -> f32 {
+  1.0 / (1.0 + f32::exp(-n))
+}
+
+// fn sigmoid_primef(n: f32) -> f32 {
+//   sigmoidf(n) * (1.0 - sigmoidf(n))
+// }
+
+// relu becomes unleaky when factor is 0.0
+const RELU_FACTOR: f32 = 0.01;
+
+fn leaky_reluf(n: f32) -> f32 {
+  if n > 0.0 {
+    n
+  } else {
+    RELU_FACTOR * n
+  }
+}
+
+// fn leaky_relu_primef(n: f32) -> f32 {
+//   if n > 0.0 {
+//     1.0
+//   } else {
+//     RELU_FACTOR
+//   }
+// }
