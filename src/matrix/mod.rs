@@ -14,22 +14,14 @@ pub struct Matrix {
 }
 
 impl Matrix {
+  // Creation
   pub fn random(rows: usize, cols: usize) -> Matrix {
-    let mat_size = rows * cols;
-
-    let mut mat = Matrix {
+    let normal = StandardNormal.sample_iter(rand::thread_rng());
+    Matrix {
       rows,
       cols,
-      nums: Vec::<f32>::with_capacity(mat_size),
-    };
-
-    let mut normal = StandardNormal.sample_iter(rand::thread_rng());
-
-    for _ in 0..mat_size {
-      mat.nums.push(normal.next().unwrap());
+      nums: normal.take(rows * cols).collect(),
     }
-
-    mat
   }
 
   pub fn fill_scalar(rows: usize, cols: usize, value: f32) -> Matrix {
@@ -49,36 +41,33 @@ impl Matrix {
     }
   }
 
-  pub fn activate(mat: &mut Matrix, activation: &ActivationType) -> Matrix {
+  // Unary functions
+  pub fn activate(mut self, activation: ActivationType) -> Matrix {
     let func: fn(f32) -> f32 = match activation {
       ActivationType::Relu => leaky_reluf,
       ActivationType::Sigmoid => sigmoidf,
       ActivationType::Softmax => todo!("implement softmax"),
     };
 
-    for n in mat.nums.iter_mut() {
+    for n in self.nums.iter_mut() {
       *n = func(*n);
     }
 
-    mat.to_owned()
+    self
   }
 
+  // Binary functions
   pub fn add(a: &Matrix, b: &Matrix) -> Matrix {
     assert!(a.rows == b.rows);
     assert!(a.cols == b.cols);
-    let mat_size = a.rows * a.cols;
 
-    let mut mat = Matrix {
+    Matrix {
       rows: a.rows,
       cols: b.cols,
-      nums: Vec::<f32>::with_capacity(mat_size),
-    };
-
-    for i in 0..mat_size {
-      mat.nums.push(a.nums[i] + b.nums[i]);
+      nums: (0..a.rows * a.cols)
+        .map(|i| a.nums[i] + b.nums[i])
+        .collect(),
     }
-
-    mat
   }
 
   pub fn multiply(a: &Matrix, b: &Matrix) -> Matrix {
@@ -149,9 +138,13 @@ impl Matrix {
 
   pub fn shuffle_rows(a: &mut Matrix, b: &mut Matrix) {
     assert!(a.rows == b.rows);
+
+    // Fisher-Yates shuffle
     for i in 0..a.rows {
       let mut rng = rand::thread_rng();
       let j: usize = i + rng.gen::<usize>() % (a.rows - i);
+
+      // unsafe { ptr::swap_nonoverlapping(a.nums[i * a.cols], a.nums[j * a.cols], count) }
 
       for k in 0..a.cols {
         a.nums.swap(i * a.cols + k, j * a.cols + k);
