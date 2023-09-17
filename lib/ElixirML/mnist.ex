@@ -2,31 +2,6 @@ defmodule ElixirML.MNIST do
   alias ElixirML.NIFs
   import ExUnit.Assertions
 
-  @filename "priv/data/mnist.bin"
-
-  @doc ~S"Loads the matrix from a binary file, loading it through the NIF should it not already exist"
-  @spec load :: ElixirML.matrices()
-  def load do
-    case File.read(@filename) do
-      {:ok, binary} -> :erlang.binary_to_term(binary)
-      {:error, _} -> NIFs.mnist_load()
-    end
-  end
-
-  @doc ~S"Saves the matrix to a binary file, should it not already exist"
-  @spec save(ElixirML.matrices()) :: nil
-  def save(data) do
-    case File.read(@filename) do
-      {:ok, _} ->
-        nil
-
-      {:error, _} ->
-        File.mkdir_p!(Path.dirname(@filename))
-        File.write(@filename, :erlang.term_to_binary(data))
-        nil
-    end
-  end
-
   @doc ~S"Prints the image to the terminal in 24 colours"
   @spec print(ElixirML.mat_elems(), ElixirML.mat_elems(), nonempty_list(String.t())) :: nil
   def print(image, label, label_list) do
