@@ -1,11 +1,11 @@
 % !TEX program = sepdflatexmk
 
-\documentclass[10pt,titlepage]{article}
+\documentclass[12pt,titlepage]{article}
 % \usepackage[usenames]{color} %used for font color
 \usepackage{amssymb} %maths
 \usepackage{amsmath} %maths
 \usepackage[utf8]{inputenc} %useful to type directly diacritic characters
-\usepackage[final]{minted}
+\usepackage{minted}
 \usepackage{xcolor} % syntax highlighting for code blocks
 \usepackage[german]{babel}
 \usepackage{csquotes}
@@ -18,7 +18,9 @@
 % BEGIN styling
 \definecolor{bg}{rgb}{0.157,0.173,0.204}
 \usemintedstyle{one-dark}
-\AddToHook{cmd/section/before}{\clearpage}
+\setminted{fontsize=\small}
+\setminted{bgcolor=bg}
+% \AddToHook{cmd/section/before}{\clearpage}
 % END styling
 
 % BEGIN metadata
@@ -44,7 +46,7 @@
 
 \section{Implementation}
 
-\inputminted[bgcolor=bg]{c}{../native/elixirml_nifs/src/lib.rs}
+\inputminted{rust}{../src/main.rs}
 
 Das wurde so gesagt \autocite{nielsen_neural_2015}.
 
