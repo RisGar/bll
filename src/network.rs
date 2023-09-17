@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Network {
-  pub layers: Vec<Layer>,
+  pub layers: Box<[Layer]>,
   pub loss: Loss,
   pub optimiser: Optimiser,
   pub weights: Vec<Matrix>,
@@ -13,12 +13,12 @@ pub struct Network {
 }
 
 impl Network {
-  pub fn new(layers: Vec<Layer>, loss: Loss, optimiser: Optimiser) -> Self {
+  pub fn new(layers: Box<[Layer]>, loss: Loss, optimiser: Optimiser) -> Self {
     // Wir brauchen mindestens einen Input Layer, einen Activation Layer und einen Output Layer
     assert!(layers.len() > 2);
     assert!(layers[0].0 == LayerType::Input);
 
-    let layer_sizes: Vec<usize> = layers.iter().map(|layer| layer.1).collect();
+    let layer_sizes: Vec<usize> = layers.iter().map(|layer| layer.size()).collect();
 
     let weights: Vec<Matrix> = layer_sizes
       .iter()
@@ -46,8 +46,8 @@ impl Network {
       activations = Matrix::multiply(&activations, &self.weights[i]);
       activations = Matrix::add(&activations, &self.biases[i]);
 
-      if let Some(activation) = &self.layers[i + 1].2 {
-        activations = Matrix::activate(&mut activations, activation);
+      if let Some(activation) = self.layers[i + 1].activation() {
+        activations = activations.activate(*activation);
       }
     }
 

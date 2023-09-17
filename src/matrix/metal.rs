@@ -63,8 +63,6 @@ pub fn add(a: &Matrix, b: &Matrix) -> Matrix {
   command_buffer.commit();
   command_buffer.wait_until_completed();
 
-  // mat.nums = unsafe { slice::from_raw_parts(*ptr, mat_size).to_vec() };
-
   Matrix {
     rows: a.rows,
     cols: b.cols,

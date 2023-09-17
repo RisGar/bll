@@ -27,6 +27,9 @@ pub fn run() {
   let d = Matrix::multiply(&a, &b);
   println!("Matrix d: {:#?}", d);
 
+  let e = a.clone().activate(ActivationType::Sigmoid);
+  println!("Matrix e: {:#?}", e);
+
   Matrix::shuffle_rows(&mut a, &mut b);
   println!("Matrix a & b: {:#?}", (a, b));
 
@@ -36,9 +39,9 @@ pub fn run() {
     Layer(LayerType::Input, 12, None),
     Layer(LayerType::Dense, 4, Some(ActivationType::Relu)),
     Layer(LayerType::Dense, 2, Some(ActivationType::Sigmoid)),
-  ];
+  ]
+  .into_boxed_slice();
 
   let network = Network::new(layers, Loss::CrossEntropy, Optimiser::AdamW);
-  network.feedforward(mnist[0].clone());
-  // println!("Network: {:#?}", network);
+  println!("Network: {:#?}", network);
 }
