@@ -19,4 +19,21 @@ pub fn run() {
   .into_boxed_slice();
 
   Network::new(layers, Loss::CrossEntropy, Optimiser::AdamW);
+
+  mnist::print(
+    &mnist[0].nums[3 * 28 * 28..4 * 28 * 28],
+    &mnist[2].nums[3 * 10..4 * 10],
+    &[
+      "T-shirt/top",
+      "Trouser",
+      "Pullover",
+      "Dress",
+      "Coat",
+      "Sandal",
+      "Shirt",
+      "Sneaker",
+      "Bag",
+      "Ankle boot",
+    ],
+  )
 }

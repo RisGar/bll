@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 license = "EUPL-1.2"
 readme = "README.md"
-authors = ["Rishab garg <contact@rishab-garg.me>"]
-homepage = "https://github.com/RisGar/elixir_ml"
-repository = "https://github.com/RisGar/elixir_ml"
+authors = ["Rishab Garg <contact@rishab-garg.me>"]
+homepage = "https://github.com/RisGar/bll"
+repository = "https://github.com/RisGar/bll"
 build = "build.rs"
 links = "Accelerate.framework"
 
@@ -15,7 +15,8 @@ links = "Accelerate.framework"
 [dependencies]
 rand = "0.8.5"
 rand_distr = "0.4.3"
-clap = { version = "4.4.1", features = ["derive"] }
+clap = { version = "4.4.4", features = ["derive"] }
 serde = { version = "1.0.188", features = ["derive"] }
 ciborium = "0.2.1"
 metal = "0.26.0"
+ansi_term = "0.12.1"

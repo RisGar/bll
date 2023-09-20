@@ -18,20 +18,6 @@ defmodule ElixirML.Network do
   @type loss :: :cross_entropy | :quadratic
   @type optimiser :: :adamw
 
-  @spec feedforward(map, any, number) :: map
-  def feedforward(network, features, i \\ 0)
-
-  def feedforward(network, _, i) when i == length(network.size), do: network
-
-  def feedforward(network, features, i) do
-    next_features =
-      Matrix.prod(features, Enum.at(network.weights, i))
-      |> Matrix.sum(Enum.at(network.biases, i))
-      |> Matrix.activate(network.activation)
-
-    feedforward(network, next_features, i + 1)
-  end
-
   @spec each_batch(
           Network.t(),
           ElixirML.matricies(),
