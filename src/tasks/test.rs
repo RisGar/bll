@@ -19,19 +19,22 @@ pub fn run() {
   println!("Matrix b: {:#?}", b);
 
   let c = Matrix::add(&a, &b);
-  println!("Matrix c: {:#?}", c);
+  println!("Addition: {:#?}", c);
 
   let c_2 = matrix::metal::add(&a, &b);
-  println!("Matrix c_2: {:#?}", c_2);
+  println!("Metal addition: {:#?}", c_2);
 
   let d = Matrix::multiply(&a, &b);
-  println!("Matrix d: {:#?}", d);
+  println!("Multiplication {:#?}", d);
 
   let e = a.clone().activate(ActivationType::Sigmoid);
-  println!("Matrix e: {:#?}", e);
+  println!("Sigmoid activation: {:#?}", e);
+
+  let f = a.clone().T();
+  println!("Transpose: {:#?}", f);
 
   Matrix::shuffle_rows(&mut a, &mut b);
-  println!("Matrix a & b: {:#?}", (a, b));
+  println!("Shuffle rows: {:#?}", (a, b));
 
   let mnist = load(&"./datasets/fashionmnist/fashion.bin".to_owned());
 
@@ -43,5 +46,5 @@ pub fn run() {
   .into_boxed_slice();
 
   let network = Network::new(layers, Loss::CrossEntropy, Optimiser::AdamW);
-  println!("Network: {:#?}", network);
+  // println!("Network: {:#?}", network);
 }

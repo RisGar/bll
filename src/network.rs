@@ -23,13 +23,13 @@ impl Network {
     let weights: Vec<Matrix> = layer_sizes
       .iter()
       .zip(layer_sizes.iter().skip(1))
-      .map(|(rows, cols): (&usize, &usize)| Matrix::random(*rows, *cols))
+      .map(|(&rows, &cols)| Matrix::random(rows, cols))
       .collect();
 
     let biases: Vec<Matrix> = layer_sizes
       .iter()
       .skip(1)
-      .map(|cols: &usize| Matrix::random(1, *cols))
+      .map(|&cols| Matrix::random(1, cols))
       .collect();
 
     Self {
@@ -46,8 +46,8 @@ impl Network {
       activations = Matrix::multiply(&activations, &self.weights[i]);
       activations = Matrix::add(&activations, &self.biases[i]);
 
-      if let Some(activation) = self.layers[i + 1].activation() {
-        activations = activations.activate(*activation);
+      if let &Some(activation) = self.layers[i + 1].activation() {
+        activations.activate(activation);
       }
     }
 

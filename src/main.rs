@@ -1,6 +1,7 @@
 use clap::{Parser, ValueEnum};
 
 mod layer;
+mod loss;
 mod matrix;
 mod mnist;
 mod network;

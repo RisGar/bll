@@ -2,11 +2,14 @@ use crate::layer::ActivationType;
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
 use serde::{Deserialize, Serialize};
-use std::ffi::{c_float, c_int};
+use std::{
+  ffi::{c_float, c_int},
+  fmt,
+};
 
 pub mod metal;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Matrix {
   pub rows: usize,
   pub cols: usize,
@@ -42,18 +45,29 @@ impl Matrix {
   }
 
   // Unary functions
-  pub fn activate(mut self, activation: ActivationType) -> Matrix {
-    let func: fn(f32) -> f32 = match activation {
-      ActivationType::Relu => leaky_reluf,
-      ActivationType::Sigmoid => sigmoidf,
-      ActivationType::Softmax => todo!("implement softmax"),
+  pub fn activate(mut self, activation: ActivationType) {
+    activation.activate(&mut self.nums);
+  }
+
+  pub fn transpose(self) -> Matrix {
+    let mut mat = Matrix {
+      rows: self.cols,
+      cols: self.rows,
+      nums: vec![0.0; self.rows * self.cols],
     };
 
-    for n in self.nums.iter_mut() {
-      *n = func(*n);
+    for i in 0..self.rows {
+      for j in 0..self.cols {
+        mat.nums[j * self.cols + i] = self.nums[i * self.cols + j];
+      }
     }
 
-    self
+    mat
+  }
+
+  #[allow(non_snake_case)]
+  pub fn T(self) -> Matrix {
+    self.transpose()
   }
 
   // Binary functions
@@ -164,11 +178,7 @@ impl Matrix {
       let mat = Matrix {
         rows: batch_size,
         cols: mat.cols,
-        nums: Vec::from_iter(
-          mat.nums[i * batch_size * mat.cols..(i + 1) * batch_size * mat.cols]
-            .iter()
-            .cloned(),
-        ),
+        nums: mat.nums[i * batch_size * mat.cols..(i + 1) * batch_size * mat.cols].into(),
       };
 
       res.push(mat)
@@ -178,29 +188,22 @@ impl Matrix {
   }
 }
 
-fn sigmoidf(n: f32) -> f32 {
-  1.0 / (1.0 + f32::exp(-n))
-}
+impl fmt::Debug for Matrix {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let max_width = self.nums.iter().map(|n| n.to_string().len()).max().unwrap();
 
-// fn sigmoid_primef(n: f32) -> f32 {
-//   sigmoidf(n) * (1.0 - sigmoidf(n))
-// }
+    let mut numbers = String::new();
 
-// relu becomes unleaky when factor is 0.0
-const RELU_FACTOR: f32 = 0.01;
+    for (i, e) in self.nums.iter().enumerate() {
+      if (i + 1) % self.cols == 0 && (i + 1) != self.nums.len() {
+        numbers += &format!(" {: >1$}\n ", e, max_width);
+      } else if (i + 1) == self.nums.len() {
+        numbers += &format!(" {: >1$} ", e, max_width);
+      } else {
+        numbers += &format!(" {: >1$}", e, max_width);
+      }
+    }
 
-fn leaky_reluf(n: f32) -> f32 {
-  if n > 0.0 {
-    n
-  } else {
-    RELU_FACTOR * n
+    write!(f, "Matrix({}x{}):\n[{}]", self.rows, self.cols, numbers)
   }
 }
-
-// fn leaky_relu_primef(n: f32) -> f32 {
-//   if n > 0.0 {
-//     1.0
-//   } else {
-//     RELU_FACTOR
-//   }
-// }

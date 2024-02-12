@@ -12,46 +12,238 @@
 \usepackage{blindtext}
 \usepackage{charter} % text font
 \usepackage{sourcecodepro} % code font
-\usepackage[a4paper]{geometry}
-\usepackage[style=apa,backend=biber]{biblatex}
+\usepackage[a4paper, left=3cm, right=3cm]{geometry}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\usepackage{pgfplots}
+\usepackage{csquotes}
+\usepackage{epigraph}
 
-% BEGIN styling
+% 1.2 line skip x 1.25 line spread = 1.5 line spacing
+\linespread{1.25}
+
+% --- PLUGIN SETTINGS ---
+
+% Pgfplots settings
+\usepgfplotslibrary{external}
+\tikzexternalize
+\pgfplotsset{compat = newest}
+
+% Epigraph settings
+\setlength\epigraphwidth{.6\textwidth}
+\setlength\epigraphrule{0pt}
+
+% Minted settings
 \definecolor{bg}{rgb}{0.157,0.173,0.204}
 \usemintedstyle{one-dark}
 \setminted{fontsize=\small}
 \setminted{bgcolor=bg}
 % \AddToHook{cmd/section/before}{\clearpage}
-% END styling
 
-% BEGIN metadata
-\title{Maschinelles Lernen}
+% --- Metadata ---
+\title{Neurale Netze}
 \author{Rishab Garg}
-\date{2024 \\ März}
+\date{2024 \\ April}
 \bibliography{citations}
-% END metadata
 
-% BEGIN content
+% --- Content ---
 \begin{document}
 \maketitle
 
-\begin{abstract}
-  \blindtext
-\end{abstract}
+% \begin{abstract}
+%   \blindtext
+% \end{abstract}
 
 \tableofcontents
+\newpage
 
 \section{Einleitung}
+
+\epigraph{\itshape \enquote{Funktionen beschreiben unsere Welt.}}{---Thomas Garrity, \textit{On Mathematical Maturity}}
 
 \blindmathpaper
 
 \section{Implementation}
 
-\inputminted{rust}{../src/main.rs}
+% \inputminted{rust}{../src/main.rs}
 
 Das wurde so gesagt \autocite{nielsen_neural_2015}.
 
-\printbibliography[heading=bibintoc,
-  title={Literaturverweise}]
+\section{Aktivierungsfunktionen}
+
+\subsection{Lineare Funktion}
+
+\[ \begin{aligned}
+    f(z)  & = mz \\
+    f'(z) & = m
+  \end{aligned} \]
+
+$m$: Faktor
+
+\begin{tikzpicture}
+  \begin{axis}[
+      width = \textwidth,
+      height = 0.5\textwidth,
+      grid = both,
+      minor tick num = 1,
+      major grid style = {lightgray},
+      minor grid style = {lightgray!25},
+      xmin=-5, xmax=5,
+      % ymin=-5, ymax=5,
+      axis lines = middle,
+      xtick={-5,...,5},
+    ]
+    \addplot[
+      domain=-5:5,
+      blue,
+      thick
+    ] {x};
+    \addlegendentry{\(f(z)\)}
+
+    \addplot[
+      domain=-5:5,
+      red,
+      thick
+    ] {1};
+    \addlegendentry{\(f^\prime(z)\)}
+
+  \end{axis}
+\end{tikzpicture}
+
+
+\subsection{Rampenfunktion (ReLU)}
+
+\[ f(z) = \begin{cases}
+    z & \textnormal{f"ur} \ z \geq 0 \\
+    0 & \textnormal{f"ur} \ z < 0
+  \end{cases} \]
+\[ f'(z) = \begin{cases}
+    1 & \textnormal{f"ur} \ z > 0 \\
+    0 & \textnormal{f"ur} \ z < 0
+  \end{cases} \]
+
+\begin{tikzpicture}
+  \begin{axis}[
+      width = \textwidth,
+      height = 0.5\textwidth,
+      grid = both,
+      minor tick num = 1,
+      major grid style = {lightgray},
+      minor grid style = {lightgray!25},
+      xmin=-5, xmax=5,
+      % ymin=-5, ymax=5,
+      axis lines = middle,
+      xtick={-5,...,5},
+    ]
+    \addplot[
+      domain=-5:5,
+      blue,
+      thick
+    ] {max(0, x)};
+    \addlegendentry{\(f(z)\)}
+
+    \addplot[
+      domain=-5:5,
+      red,
+      thick,
+      jump mark right
+    ] {less(0, x)};
+    \addlegendentry{\(f^\prime(z)\)}
+
+  \end{axis}
+\end{tikzpicture}
+
+
+\subsubsection{Leaky ReLU}
+
+Soll das \enquote{sterbende ReLU} Problem beheben durch eine kleinere Steigung im negativen Bereich.
+
+\[
+  \begin{aligned}
+    f(z)  & = \begin{cases}
+                z  & \textnormal{f"ur} \ z \geq 0 \\
+                az & \textnormal{f"ur} \ z < 0
+              \end{cases} \\
+    f'(z) & = \begin{cases}
+                1 & \textnormal{f"ur} \ z > 0 \\
+                a & \textnormal{f"ur} \ z < 0
+              \end{cases}
+  \end{aligned}
+\]
+
+- $a$: Steigung im negativen Bereich
+
+Graph für $a$ = 0.1:
+
+\begin{tikzpicture}
+  \begin{axis}[
+      width = \textwidth,
+      height = 0.5\textwidth,
+      grid = both,
+      minor tick num = 1,
+      major grid style = {lightgray},
+      minor grid style = {lightgray!25},
+      xmin=-5, xmax=5,
+      % ymin=-5, ymax=5,
+      axis lines = middle,
+      xtick={-5,...,5},
+    ]
+    \addplot[
+      domain=-5:5,
+      blue,
+      thick
+    ] {max(x * 0.1, x)};
+    \addlegendentry{\(f(z)\)}
+
+    \addplot[
+      domain=-5:5,
+      red,
+      thick,
+      jump mark right
+    ] {ifthenelse(less(x, 0), 0.1, 1)};
+    \addlegendentry{\(f^\prime(z)\)}
+
+  \end{axis}
+\end{tikzpicture}
+
+\subsection{Stufenfunktion}
+
+\[
+  \begin{aligned}
+    f(z)  & = \begin{cases}
+                0 & \textnormal{f"ur} \ z \geq 0 \\
+                1 & \textnormal{f"ur} \ z < 0
+              \end{cases}      \\
+    f'(z) & = 0 \;\;\; \textnormal{f"ur} \ z \neq 0
+  \end{aligned}
+\]
+
+\subsection{Sigmoid-Funktionen}
+
+\subsubsection{Logistische Funktion}
+
+\[
+  \begin{aligned}
+    \sigma(z)  & = \frac{1}{1 + e^{-z}}          \\
+    \sigma'(z) & = \frac{e^{-x}}{(1 + e^{-x})^2}
+  \end{aligned}
+\]
+
+\subsubsection{Hyperbeltangens}
+
+\[
+  \begin{aligned}
+    \tanh(z)  & = \frac{e^z - e^{-z}}{e^z + e^{-z}} \\
+    \tanh'(z) & = 1 - \tanh^2(z)
+  \end{aligned}
+\]
+
+
+\subsection{Softmax-Funktion}
+
+\[\sigma(\vec{z})_i = \frac{ e^{z_i} }{ \sum_{j=1}^{K} e^{z_j} }\]
+
+\newpage
+\printbibliography[heading=bibintoc, title={Literaturverweise}]
 
 \end{document}
 % END content
