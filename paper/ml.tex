@@ -17,6 +17,7 @@
 \usepackage{pgfplots}
 \usepackage{csquotes}
 \usepackage{epigraph}
+\usepackage{tikz}
 
 % 1.2 line skip x 1.25 line spread = 1.5 line spacing
 \linespread{1.25}
@@ -60,15 +61,73 @@
 
 \epigraph{\itshape \enquote{Funktionen beschreiben unsere Welt.}}{---Thomas Garrity, \textit{On Mathematical Maturity}}
 
-Mit dieser These stellte Thomas Garrity das Thema der "Mathematischen Reife" seinen Zuhörern vor. Unter diesem Begriff versteht man in der Mathematik ein tieferes Bewusstsein wie die Mathematik funktionert, welches anders als pures Wissen nicht auf einmal erlernt werden kann \autocite{garrityMathematicalMaturity2017}, \autocite[99]{ralston2012future}. In unser heutigen Welt spielen auf ANN basierte Künstliche Intelligenzen eine immer wichtigere Rolle, vorallem durch Chatbots wie ChatGPT. Dabei
+% TODO
 
-\section{Neuronale Netze}
+Mit dieser These stellte Thomas Garrity das Thema der "Mathematischen Reife" seinen Zuhörern vor. Unter diesem Begriff versteht man in der Mathematik ein tieferes Bewusstsein wie die Mathematik funktionert, welches anders als pures Wissen nicht auf einmal erlernt werden kann \autocite{garrityMathematicalMaturity2017}, \autocite[99]{ralstonFutureCollegeMathematics1983}. In unser heutigen Welt spielen auf ANN basierte Künstliche Intelligenzen eine immer wichtigere Rolle, vorallem durch Chatbots wie ChatGPT, welche unter unterschiedlichsten Demographien nutzen finden. Es wird oftmals als ein \enquote{magischer Kasten} gesehen, welcher aus einer Aufforderung aus \enquote{erlerntem} Wissen eine Antwort generiert. Doch ein wie eben benanntes tieferes Bewusstsein, wie simpel diese Technologie eigentlich ist, fehlt. Denn Neuronale Netze, wie
 
-Künstliche Neuronale Netze, kurz \textit{ANN} (von dem englischen \enquote{Artificial Neural Networks}) sind ein mathematischen Modell der inter- und intraneuronalen Vorgänge in einem biologischen, also \enquote{natürlichen} neuronalen Netz, wie es auch im Gehirn eines Menschen zu finden ist.
+
+\subsection{Neuronale Netze}
+
+Künstliche Neuronale Netze, kurz \textit{ANN} (von dem englischen \enquote{Artificial Neural Networks}) sind ein mathematisches Modell der inter- und intraneuronalen Vorgänge in einem biologischen, also \enquote{natürlichen} neuronalen Netz, wie es auch im Gehirn eines Menschen zu finden ist.
+
+Dabei kann man sich ANN wie eine \enquote{schwarze Box} vorstellen. Es wird ein Datensatz in das Netz gegeben, und das Netz soll eine gewünschte Ausgabe liefern.
+
+Bei diesen Daten kann es sich zum Beispiel um ein Bild oder auch einen Datensatz handeln. Was in dieser schwarzen Box passiert ist für den Endnutzer irrelevant, genau so wie es für das Nutzen von einfachen mathematische Formeln irrelevant ist, das Verständnis für das Innermathemische eines Mathematikers zu haben.
+
+Doch wie unser Gehirn lässt sich ein ANN auch als eine grundlegende Aneinanderreihung von Neuronen bezeichnen, welche seperat von dem ganzen Netz mit einfachen Abläufen beschrieben werden können.
+% also, wie in Garritys Zitat, eine Funktion^ approximieren, durch welche die Aufgabe in der Welt beschrieben wird.
 
 \subsection{Das Neuron}
 
-Wie auch in einem natürlichen neuronalen Netz, sind Neuronen die Grundbausteine eines ANN. Durch die Eigenschaft eines Neuronen entweder
+Wie auch in einem natürlichen neuronalen Netz, sind Neuronen die Grundbausteine eines ANN. Da bei erreichen eines benötigten Aktionspotenzials ein Neuron sofort mit maximaler Stärke ausgelöst wird, lässt sich die elektrische Ausgabe als Bit (0 oder 1) darstellen \autocite{mccullochLogicalCalculusIdeas1943}.
+
+% TODO: (Alles-oder-nichts-Gesetz)
+
+Ein solches binäres Neuron kann also zwischen \enquote{wahr} und \enquote{falsch} im Sinne der Booleschen Algebra unterscheiden.
+
+% TODO: multi layer perceptron
+
+\section{Das Perzeptron}
+
+Die einfachste Vernetzung von künstlichen Neuronen ist das Perzeptron, welches eine lineare Funktion approximieren kann.
+
+
+
+Mithilfe des Perzeptrons kann ein eine sogenannte \enquote{binäre Klassifikation} durchgeführt werden, bei der eine Gruppe von Eingaben eine Ausgabe von 0 oder 1 annimmt.
+
+Es besteht aus mehreren Eingängen, zusammengefasst die \enquote{Retina} genannt, und einem Ausgangs-Neuron.
+
+Die Eingabe-Ebene besteht aus $n$ reelen Werten, welche, analog zum biologischen Neuronalen Netz, jeweils mit gewichteten Synapsen mit dem Ausgangs-Neuron verknüpft sind.
+
+Im Ausgangs-Neuron $a$ wird nun jeder Eingangswert $x_i$ mit der verbundenen Synapsengewichtung $w_i$ multipliziert und summiert.
+
+% TODO: bias
+
+Durch die Gewichtung- und Voreingenommenheit-Parametern können also die
+
+% TODO: Warum keine lineare Funktion
+
+\[ a = \left( \sum_{i=1}^{n} w_{i} x_i \right) + b \]
+
+Da für das Skalarprodukt $\vec{a} \circ \vec{b} = \sum_{i=1}^{n} a_i b_i$ gilt lässt sich die Multiplikation der Eingangswerte mit den Gewichtungen auch als Skalarprodukt zweier Vektoren darstellen:
+
+\[ a(\vec{x}) = \vec{w} \circ \vec{x} + b \]
+
+\subsection{Die Heaviside-Funktion}
+
+Der Funktionswert $a$ ist jedoch noch eine reele Zahl, für eine Boolean-Ausgabe wird ein weiterer Schritt gebraucht, welcher einer jeglichen reelen Zahl eine 0 oder 1 zuordnet.
+
+Eine solche Zuordnung $F: \mathbb{Z} \rightarrow \{ 0, 1 \}$ macht die Heaviside-Funktion $\Theta$, welcher jeder positiven Zahl eine 1 und jeder negativen Zahl eine 0 zuordnet:
+
+\[
+  \Theta(x) = \begin{cases}
+    1 & \textnormal{f"ur} \ x \geq 0 \\
+    0 & \textnormal{f"ur} \ x < 0
+  \end{cases}
+\]
+
+% o & = H(\vec{w} \cdot \vec{x} + b); \quad o \in \{ 0, 1 \}
+
 % \blindmathpaper
 
 \section{Implementation}
@@ -217,8 +276,8 @@ Graph für $a$ = 0.1:
 \[
   \begin{aligned}
     f(z)  & = \begin{cases}
-                0 & \textnormal{f"ur} \ z \geq 0 \\
-                1 & \textnormal{f"ur} \ z < 0
+                1 & \textnormal{f"ur} \ z \geq 0 \\
+                0 & \textnormal{f"ur} \ z < 0
               \end{cases}      \\
     f'(z) & = 0 \;\;\; \textnormal{f"ur} \ z \neq 0
   \end{aligned}

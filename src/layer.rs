@@ -27,7 +27,15 @@ pub enum ActivationType {
 }
 
 impl ActivationType {
-  pub fn activate(self, n: &mut Vec<f32>) {
+  pub fn activate(self, n: &mut [f32]) {
+    match self {
+      ActivationType::Relu => leaky_relu(n),
+      ActivationType::Sigmoid => sigmoid(n),
+      ActivationType::Softmax => softmax(n),
+    }
+  }
+  // TODO
+  pub fn derivative(self, n: &mut [f32]) {
     match self {
       ActivationType::Relu => leaky_relu(n),
       ActivationType::Sigmoid => sigmoid(n),
@@ -36,7 +44,7 @@ impl ActivationType {
   }
 }
 
-fn sigmoid(n: &mut Vec<f32>) {
+fn sigmoid(n: &mut [f32]) {
   n.iter_mut().for_each(|e| {
     *e = 1.0 / (1.0 + f32::exp(-(*e)));
   })
@@ -45,7 +53,7 @@ fn sigmoid(n: &mut Vec<f32>) {
 // relu becomes unleaky when factor is 0.0
 const RELU_FACTOR: f32 = 0.01;
 
-fn leaky_relu(n: &mut Vec<f32>) {
+fn leaky_relu(n: &mut [f32]) {
   n.iter_mut().for_each(|e| {
     if *e <= 0.0 {
       *e *= RELU_FACTOR;
@@ -53,7 +61,7 @@ fn leaky_relu(n: &mut Vec<f32>) {
   })
 }
 
-fn leaky_relu_prime(n: &mut Vec<f32>) {
+fn leaky_relu_prime(n: &mut [f32]) {
   n.iter_mut().for_each(|e| {
     if *e <= 0.0 {
       *e = RELU_FACTOR;
@@ -63,18 +71,19 @@ fn leaky_relu_prime(n: &mut Vec<f32>) {
   })
 }
 
-fn softmax(n: &mut Vec<f32>) {
+fn softmax(n: &mut [f32]) {
   n.iter_mut().for_each(|e| *e = f32::exp(*e));
-  n.iter_mut().for_each(|e| *e = *e / n.iter().sum::<f32>());
+  let m: f32 = n.iter().sum();
+  n.iter_mut().for_each(|e| *e /= m);
 }
 
 const LINEAR_FACTOR: f32 = 1.0;
 
-fn linear(n: &mut Vec<f32>) {
+fn linear(n: &mut [f32]) {
   n.iter_mut().for_each(|e| *e *= LINEAR_FACTOR);
 }
 
-fn linear_prime(n: &mut Vec<f32>) {
+fn linear_prime(n: &mut [f32]) {
   n.iter_mut().for_each(|e| *e = LINEAR_FACTOR);
 }
 

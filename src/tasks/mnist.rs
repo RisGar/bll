@@ -1,8 +1,10 @@
 use crate::{
   layer::{ActivationType, Layer, LayerType},
+  loss::Loss,
   matrix::Matrix,
   mnist,
-  network::{Loss, Network, Optimiser},
+  network::Network,
+  optimiser::Optimiser,
 };
 
 pub fn run() {
@@ -18,7 +20,7 @@ pub fn run() {
   ]
   .into_boxed_slice();
 
-  Network::new(layers, Loss::CrossEntropy, Optimiser::AdamW);
+  Network::new(layers, Loss::CrossEntropy, Optimiser::Adam);
 
   mnist::print(
     &mnist[0].nums[3 * 28 * 28..4 * 28 * 28],

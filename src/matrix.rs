@@ -45,7 +45,7 @@ impl Matrix {
   }
 
   // Unary functions
-  pub fn activate(mut self, activation: ActivationType) {
+  pub fn activate(&mut self, activation: ActivationType) {
     activation.activate(&mut self.nums);
   }
 

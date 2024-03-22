@@ -1,6 +1,8 @@
 use crate::{
   layer::{Layer, LayerType},
+  loss::Loss,
   matrix::Matrix,
+  optimiser::Optimiser,
 };
 
 #[derive(Debug)]
@@ -53,15 +55,17 @@ impl Network {
 
     activations
   }
-}
 
-#[derive(Debug)]
-pub enum Loss {
-  CrossEntropy,
-  Quadratic,
-}
+  pub fn backpropagate(&self, mut activations: Matrix) {
+    let dLoss = 0;
 
-#[derive(Debug)]
-pub enum Optimiser {
-  AdamW,
+    for i in 0..self.layers.len() - 1 {
+      activations = Matrix::multiply(&activations, &self.weights[i]);
+      activations = Matrix::add(&activations, &self.biases[i]);
+
+      if let &Some(activation) = self.layers[i + 1].activation() {
+        activations.activate(activation);
+      }
+    }
+  }
 }

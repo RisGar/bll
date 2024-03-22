@@ -1,8 +1,10 @@
 use crate::{
   layer::{ActivationType, Layer, LayerType},
+  loss::Loss,
   matrix::{self, Matrix},
   mnist::load,
-  network::{Loss, Network, Optimiser},
+  network::Network,
+  optimiser::Optimiser,
 };
 
 pub fn run() {
@@ -27,11 +29,11 @@ pub fn run() {
   let d = Matrix::multiply(&a, &b);
   println!("Multiplication {:#?}", d);
 
-  let e = a.clone().activate(ActivationType::Sigmoid);
-  println!("Sigmoid activation: {:#?}", e);
-
   let f = a.clone().T();
   println!("Transpose: {:#?}", f);
+
+  a.activate(ActivationType::Softmax);
+  println!("Softmax activation: {:#?}", a);
 
   Matrix::shuffle_rows(&mut a, &mut b);
   println!("Shuffle rows: {:#?}", (a, b));
@@ -45,6 +47,6 @@ pub fn run() {
   ]
   .into_boxed_slice();
 
-  let network = Network::new(layers, Loss::CrossEntropy, Optimiser::AdamW);
+  let network = Network::new(layers, Loss::CrossEntropy, Optimiser::Adam);
   // println!("Network: {:#?}", network);
 }

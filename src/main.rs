@@ -5,6 +5,7 @@ mod loss;
 mod matrix;
 mod mnist;
 mod network;
+mod optimiser;
 mod tasks;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
