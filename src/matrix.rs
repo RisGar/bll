@@ -45,8 +45,38 @@ impl Matrix {
   }
 
   // Unary functions
-  pub fn activate(&mut self, activation: ActivationType) {
-    activation.activate(&mut self.nums);
+  // pub fn activate(&mut self, activation: ActivationType) {
+  //   activation.activate(&mut self.nums);
+  // }
+
+  pub fn scale(&mut self, s: f32) {
+    for i in 0..self.nums.len() {
+      self.nums[i] *= s;
+    }
+  }
+
+  pub fn add(&mut self, b: &Matrix) {
+    assert!(self.rows == b.rows);
+    assert!(self.cols == b.cols);
+
+    self.nums = (0..self.rows * self.cols)
+      .map(|i| self.nums[i] + b.nums[i])
+      .collect();
+  }
+
+  pub fn add_row_vector(&mut self, b: &RowVector) {
+    // assert!(self.rows == b.rows);
+    assert!(self.cols == b.cols);
+
+    for i in 0..self.rows {
+      for j in 0..self.cols {
+        self.nums[i * self.cols + j] += b.nums[j];
+      }
+    }
+
+    // self.nums = (0..self.rows * self.cols)
+    //   .map(|i| self.nums[i] + b.nums[i])
+    //   .collect();
   }
 
   pub fn transpose(self) -> Matrix {
@@ -71,18 +101,18 @@ impl Matrix {
   }
 
   // Binary functions
-  pub fn add(a: &Matrix, b: &Matrix) -> Matrix {
-    assert!(a.rows == b.rows);
-    assert!(a.cols == b.cols);
+  // pub fn add2(a: &Matrix, b: &Matrix) -> Matrix {
+  //   assert!(a.rows == b.rows);
+  //   assert!(a.cols == b.cols);
 
-    Matrix {
-      rows: a.rows,
-      cols: b.cols,
-      nums: (0..a.rows * a.cols)
-        .map(|i| a.nums[i] + b.nums[i])
-        .collect(),
-    }
-  }
+  //   Matrix {
+  //     rows: a.rows,
+  //     cols: b.cols,
+  //     nums: (0..a.rows * a.cols)
+  //       .map(|i| a.nums[i] + b.nums[i])
+  //       .collect(),
+  //   }
+  // }
 
   pub fn multiply(a: &Matrix, b: &Matrix) -> Matrix {
     assert!(a.cols == b.rows);
@@ -190,6 +220,54 @@ impl Matrix {
 
 impl fmt::Debug for Matrix {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let max_width = 3; //self.nums.iter().map(|n| n.to_string().len()).max().unwrap()));
+
+    let mut numbers = String::new();
+
+    for (i, e) in self.nums.iter().enumerate() {
+      if (i + 1) % self.cols == 0 && (i + 1) != self.nums.len() {
+        numbers += &format!(" {: >1$.3}\n ", e, max_width);
+      } else if (i + 1) == self.nums.len() {
+        numbers += &format!(" {: >1$.3} ", e, max_width);
+      } else {
+        numbers += &format!(" {: >1$.3}", e, max_width);
+      }
+    }
+
+    write!(f, "Matrix({}x{}):\n[{}]", self.rows, self.cols, numbers)
+  }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct RowVector {
+  pub cols: usize,
+  pub nums: Vec<f32>,
+}
+
+impl RowVector {
+  pub fn random(cols: usize) -> RowVector {
+    let normal = StandardNormal.sample_iter(rand::thread_rng());
+    RowVector {
+      cols,
+      nums: normal.take(cols).collect(),
+    }
+  }
+
+  pub fn add(&mut self, b: &RowVector) {
+    assert!(self.cols == b.cols);
+
+    self.nums = (0..self.cols).map(|i| self.nums[i] + b.nums[i]).collect();
+  }
+
+  pub fn scale(&mut self, s: f32) {
+    for i in 0..self.nums.len() {
+      self.nums[i] *= s;
+    }
+  }
+}
+
+impl fmt::Debug for RowVector {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     let max_width = self.nums.iter().map(|n| n.to_string().len()).max().unwrap();
 
     let mut numbers = String::new();
@@ -204,6 +282,6 @@ impl fmt::Debug for Matrix {
       }
     }
 
-    write!(f, "Matrix({}x{}):\n[{}]", self.rows, self.cols, numbers)
+    write!(f, "Matrix(1x{}):\n[{}]", self.cols, numbers)
   }
 }

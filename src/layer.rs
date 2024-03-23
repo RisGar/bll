@@ -1,3 +1,5 @@
+use crate::matrix::Matrix;
+
 #[derive(Debug)]
 pub struct Layer(pub LayerType, pub usize, pub Option<ActivationType>);
 
@@ -22,24 +24,21 @@ pub enum LayerType {
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ActivationType {
   Relu,
-  Sigmoid,
   Softmax,
 }
 
 impl ActivationType {
-  pub fn activate(self, n: &mut [f32]) {
+  pub fn activate(self, n: &mut Matrix) {
     match self {
-      ActivationType::Relu => leaky_relu(n),
-      ActivationType::Sigmoid => sigmoid(n),
+      ActivationType::Relu => leaky_relu(&mut n.nums),
       ActivationType::Softmax => softmax(n),
     }
   }
   // TODO
-  pub fn derivative(self, n: &mut [f32]) {
+  pub fn backwards(self, n: &mut Matrix) {
     match self {
-      ActivationType::Relu => leaky_relu(n),
-      ActivationType::Sigmoid => sigmoid(n),
-      ActivationType::Softmax => softmax(n),
+      ActivationType::Relu => leaky_relu_prime(&mut n.nums),
+      ActivationType::Softmax => softmax_prime(&mut n.nums),
     }
   }
 }
@@ -71,30 +70,25 @@ fn leaky_relu_prime(n: &mut [f32]) {
   })
 }
 
-fn softmax(n: &mut [f32]) {
-  n.iter_mut().for_each(|e| *e = f32::exp(*e));
-  let m: f32 = n.iter().sum();
-  n.iter_mut().for_each(|e| *e /= m);
+// Row-wise softmax
+pub fn softmax(mat: &mut Matrix) {
+  for i in 0..mat.rows {
+    let mut n = mat.nums[i * mat.cols..(i + 1) * mat.cols].to_vec();
+    // Subtract max value so that all values are <= 0 and the exp function doesn't overflow
+    let max = n.iter().cloned().fold(0.0, f32::max);
+    n.iter_mut().for_each(|e| *e -= max);
+
+    n.iter_mut().for_each(|e| *e = f32::exp(*e));
+
+    let m: f32 = n.iter().sum();
+    n.iter_mut().for_each(|e| *e /= m);
+
+    for (j, e) in n.iter().enumerate() {
+      mat.nums[i * mat.cols + j] = *e;
+    }
+  }
 }
 
-const LINEAR_FACTOR: f32 = 1.0;
-
-fn linear(n: &mut [f32]) {
-  n.iter_mut().for_each(|e| *e *= LINEAR_FACTOR);
+fn softmax_prime(n: &mut [f32]) {
+  todo!("softmax_prime");
 }
-
-fn linear_prime(n: &mut [f32]) {
-  n.iter_mut().for_each(|e| *e = LINEAR_FACTOR);
-}
-
-// fn sigmoid_primef(n: f32) -> f32 {
-//   sigmoidf(n) * (1.0 - sigmoidf(n))
-// }
-
-// fn leaky_relu_primef(n: f32) -> f32 {
-//   if n > 0.0 {
-//     1.0
-//   } else {
-//     RELU_FACTOR
-//   }
-// }

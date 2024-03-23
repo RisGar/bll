@@ -20,8 +20,8 @@ pub fn run() {
   println!("Matrix a: {:#?}", a);
   println!("Matrix b: {:#?}", b);
 
-  let c = Matrix::add(&a, &b);
-  println!("Addition: {:#?}", c);
+  Matrix::add(&mut a, &b);
+  println!("Addition: {:#?}", a);
 
   let c_2 = matrix::metal::add(&a, &b);
   println!("Metal addition: {:#?}", c_2);
@@ -32,7 +32,7 @@ pub fn run() {
   let f = a.clone().T();
   println!("Transpose: {:#?}", f);
 
-  a.activate(ActivationType::Softmax);
+  ActivationType::Softmax.activate(&mut a);
   println!("Softmax activation: {:#?}", a);
 
   Matrix::shuffle_rows(&mut a, &mut b);
@@ -43,10 +43,10 @@ pub fn run() {
   let layers = vec![
     Layer(LayerType::Input, 12, None),
     Layer(LayerType::Dense, 4, Some(ActivationType::Relu)),
-    Layer(LayerType::Dense, 2, Some(ActivationType::Sigmoid)),
+    Layer(LayerType::Dense, 2, Some(ActivationType::Softmax)),
   ]
   .into_boxed_slice();
 
-  let network = Network::new(layers, Loss::CrossEntropy, Optimiser::Adam);
+  let network = Network::new(layers, Loss::CrossEntropy, Optimiser::Sgd, 1.0);
   // println!("Network: {:#?}", network);
 }
