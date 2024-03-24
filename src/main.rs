@@ -1,7 +1,6 @@
 use clap::{Parser, ValueEnum};
 
 mod layer;
-mod loss;
 mod matrix;
 mod mnist;
 mod network;
@@ -25,7 +24,7 @@ struct Args {
   task: Task,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
   let args = Args::parse();
   match args.task {
     Task::Mnist => tasks::mnist::run(),

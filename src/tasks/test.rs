@@ -1,13 +1,6 @@
-use crate::{
-  layer::{ActivationType, Layer, LayerType},
-  loss::Loss,
-  matrix::{self, Matrix},
-  mnist::load,
-  network::Network,
-  optimiser::Optimiser,
-};
+use crate::matrix::{self, Matrix};
 
-pub fn run() {
+pub fn run() -> Result<(), Box<dyn std::error::Error>> {
   let mut a = Matrix::fill_vector(
     4,
     4,
@@ -32,21 +25,8 @@ pub fn run() {
   let f = a.clone().T();
   println!("Transpose: {:#?}", f);
 
-  ActivationType::Softmax.activate(&mut a);
-  println!("Softmax activation: {:#?}", a);
-
   Matrix::shuffle_rows(&mut a, &mut b);
   println!("Shuffle rows: {:#?}", (a, b));
 
-  let mnist = load(&"./datasets/fashionmnist/fashion.bin".to_owned());
-
-  let layers = vec![
-    Layer(LayerType::Input, 12, None),
-    Layer(LayerType::Dense, 4, Some(ActivationType::Relu)),
-    Layer(LayerType::Dense, 2, Some(ActivationType::Softmax)),
-  ]
-  .into_boxed_slice();
-
-  let network = Network::new(layers, Loss::CrossEntropy, Optimiser::Sgd, 1.0);
-  // println!("Network: {:#?}", network);
+  Ok(())
 }

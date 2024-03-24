@@ -1,7 +1,7 @@
 use crate::matrix::Matrix;
 use ansi_term::Colour::Fixed;
 use ansi_term::Style;
-use ciborium::{from_reader, into_writer};
+use bincode::{deserialize_from, serialize_into};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Seek, SeekFrom};
 use std::mem::size_of;
@@ -71,21 +71,27 @@ fn vectorise(num: &u8) -> Vec<f32> {
   vec
 }
 
-fn save_to_file(matrices: &[Matrix; 4], path: &impl AsRef<Path>) {
+fn save_to_file(matrices: &[Matrix; 4], path: &impl AsRef<Path>) -> Result<(), bincode::Error> {
   let file = File::create(path).unwrap();
   let writer = BufWriter::new(file);
+
   println!("Saving to file...");
-  into_writer(matrices, writer).unwrap();
-  // serialize_into(file, matrices).unwrap();
+
+  // into_writer(matrices, writer).unwrap();
+  serialize_into(writer, matrices)?;
+
   println!("Saved to path {}", path.as_ref().display());
+
+  Ok(())
 }
 
 pub fn load(path: &impl AsRef<Path>) -> [Matrix; 4] {
   match File::open(path) {
     Ok(file) => {
       let reader = BufReader::new(file);
-      from_reader(reader).unwrap()
-    } // deserialize_from(&file).unwrap(),
+
+      deserialize_from(reader).expect("Failed to deserialize")
+    }
     Err(_) => {
       println!("Loading from scratch...");
       let matrices = [
@@ -94,7 +100,7 @@ pub fn load(path: &impl AsRef<Path>) -> [Matrix; 4] {
         load_label("datasets/fashionmnist/train-labels-idx1-ubyte"),
         load_label("datasets/fashionmnist/t10k-labels-idx1-ubyte"),
       ];
-      save_to_file(&matrices, path);
+      save_to_file(&matrices, path).expect("Failed to save to file");
       matrices
     }
   }

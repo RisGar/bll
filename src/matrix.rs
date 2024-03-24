@@ -1,4 +1,3 @@
-use crate::layer::ActivationType;
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
 use serde::{Deserialize, Serialize};
@@ -56,11 +55,19 @@ impl Matrix {
   }
 
   pub fn add(&mut self, b: &Matrix) {
+    assert_eq!(self.rows, b.rows);
+    assert_eq!(self.cols, b.cols);
+
+    self.nums = (0..self.nums.len())
+      .map(|i| self.nums[i] + b.nums[i])
+      .collect();
+  }
+  pub fn subtract(&mut self, b: &Matrix) {
     assert!(self.rows == b.rows);
     assert!(self.cols == b.cols);
 
-    self.nums = (0..self.rows * self.cols)
-      .map(|i| self.nums[i] + b.nums[i])
+    self.nums = (0..self.nums.len())
+      .map(|i| self.nums[i] - b.nums[i])
       .collect();
   }
 
@@ -77,6 +84,28 @@ impl Matrix {
     // self.nums = (0..self.rows * self.cols)
     //   .map(|i| self.nums[i] + b.nums[i])
     //   .collect();
+  }
+
+  /// Hadamard product of two matrices
+  pub fn hadamard(&mut self, b: &Matrix) {
+    assert!(self.rows == b.rows);
+    assert!(self.cols == b.cols);
+
+    self.nums = (0..self.nums.len())
+      .map(|i| self.nums[i] * b.nums[i])
+      .collect();
+  }
+
+  /// Sum of each row in form of a row vector
+  pub fn row_sum(&self) -> RowVector {
+    RowVector {
+      cols: self.cols,
+      nums: self
+        .nums
+        .chunks(self.cols)
+        .map(|c| c.iter().sum())
+        .collect(),
+    }
   }
 
   pub fn transpose(self) -> Matrix {
