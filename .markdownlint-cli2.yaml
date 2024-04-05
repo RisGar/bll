@@ -1,0 +1,8 @@
+ignores:
+  - "LICENSE"
+config:
+  default: true
+  "no-hard-tabs": false
+  "no-trailing-spaces": false
+  "commands-show-output": false
+  "no-trailing-punctuation": false

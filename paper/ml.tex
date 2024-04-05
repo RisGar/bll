@@ -1,0 +1,955 @@
+\documentclass[12pt,titlepage]{article}
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+\usepackage[utf8]{inputenc} %useful to type directly diacritic characters
+\usepackage[ngerman]{babel}
+\usepackage{charter} % text font
+\usepackage[a4paper, left=3cm, right=3cm]{geometry}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\usepackage{pgfplots}
+\usepackage{csquotes}
+\usepackage{epigraph}
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage{microtype}
+
+% 1.2 line skip x 1.25 line spread = 1.5 line spacing
+\linespread{1.25}
+
+% --- PLUGIN SETTINGS ---
+
+% babel settings
+\DefineBibliographyStrings{ngerman}{presentedat = präsentiert bei\addspace,}
+
+% Pgfplots settings
+% \usepgfplotslibrary{external}
+% \tikzexternalize
+\pgfplotsset{compat = newest}
+
+% Epigraph settings
+\setlength\epigraphwidth{.6\textwidth}
+\setlength\epigraphrule{0pt}
+
+% --- Metadata ---
+\bibliography{citations}
+
+% --- Content ---
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1cm}
+
+    \Huge
+    {\textbf{Neuronale Netzwerke}}
+
+    \LARGE
+    Besondere Lernleistung
+
+    \large
+    \vspace{1cm}
+    Rishab Garg
+
+    \vspace{1cm}
+    05. April 2024
+
+    \vfill
+
+    Betreut durch Frau Marinescu\\
+    Fachbereich Informatik\\
+    Gymnasium Buckhorn\\
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\section*{Hinweise}
+
+Der Source-Code für das Projekt, sowie der Code für das {\fontfamily{cmr}\selectfont\LaTeX}-Dokument dieser schriftlichen Ausarbeitung sind unter \url{https://github.com/RisGar/bll} verfügbar.
+
+Die Notation hält sich weitestgehend an die Standards der \enquote{Beijing Academy of Artificial Intelligence}, verfügbar unter \url{https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/mlmath/mlmath.pdf} und des Stanford University CS20-Kurs verfügbar unter \url{https://cs230.stanford.edu/files/Notation.pdf}, sollte jedoch unabhängig von diesen verständlich sein.
+
+Da der Buchstabe $x$ bereits von diesen Standards genutzt wird, wird als unabhängige Variable der Buchstabe $z$ benutzt, dieser repräsentiert jedoch, anders als üblich, keine komplexe Zahl.
+
+\section{Einleitung}
+
+In unserer heutigen Welt spielt Künstliche Intelligenz, kurz \textit{KI}, eine immer wichtigere Rolle, vor allem durch Chatbots wie ChatGPT, welche in unterschiedlichsten Bereichen ihren Nutzen finden. Sie werden oftmals als ein \enquote{magisches Werkzeug} gesehen, welches aus jeglicher Aufforderung eine Antwort \enquote{herzaubert}, aber wovon niemand wirklich versteht, wie oder warum es funktioniert.
+
+Genau diese \enquote{Magie} hat dieses Thema für mich seit Jahren interessant gemacht. Frühere Versuche, mich mit der genauen Funktionsweise von neuronalen Netzwerken, auf welchen diese fortschrittlichen KIs beruhen, haben mich jedoch aufgrund von fehlendem Grundwissen nicht weiter gebracht.
+
+Aus diesem Grund habe ich mir im Rahmen dieser \textit{besonderen Lernleistung} vorgenommen, mich als Jahresprojekt an das Thema wieder heranzuwagen und unter der Leitfrage \textbf{\enquote{Wie kann man den Lernprozess eines neuronalen Netzwerkes mathematisch darstellen?}}, die Funktionsweise und den Lernprozess eines neuronalen Netzwerks zu verstehen sowie ein eigenes zu programmieren.
+
+\section{Neuronale Netzwerke}
+
+\epigraph{\itshape \enquote{Funktionen beschreiben unsere Welt.}}{---Thomas Garrity, \textit{On Mathematical Maturity}}
+
+Ähnliche Aussagen hatte ich im Laufe der Jahre im Physikunterricht immer wieder gehört. Sämtliche Aspekte aus unserem Leben wären durch Funktionen beschreibbar, sei es der Strom, der durch unsere Steckdose fließt oder der Schall, den wir mit unseren Ohren hören \autocite{garrityMathematicalMaturity2017}. Neuronale Netzwerke bringen diesen Satz jedoch auf ein neues Extrem.
+
+Ein künstliches neuronales Netz, kurz \textit{ANN} (von dem englischen \enquote{Artificial Neural Network}) ist ein mathematisches Modell der inter- und intraneuronalen Vorgänge in einem biologischen, also \enquote{natürlichen} neuronalen Netz, wie es auch im Gehirn eines Menschen vorzufinden ist \autocite[3]{suzukiArtificialNeuralNetworks2011}.
+
+Ein biologisches neuronales Netz hat seinen Namen davon, dass es eine Vernetzung von Zellen, genannt Neuronen, ist, welche mit Synapsen miteinander verknüpft sind. Sie kommunizieren lediglich durch elektrische Impulse und jedes Neuron kann basierend auf der Stärke der Impulse der verknüpften Zellen selbst \enquote{entscheiden} ob es einen Impuls weiterleitet \autocite[1]{mccullochLogicalCalculusIdeas1943}. Diese Separierbarkeit von einzelnen Neuronen lässt sie unahängig von einem ganzen Netz, als \textit{künstliche} Neuronen, im Laufe dieses Textes einfach halber nur als \enquote{Neuronen} bezeichnet, mathematisch als eine Funktion modellieren \autocite[3]{suzukiArtificialNeuralNetworks2011}. Das ganze ANN ist also eine Verknüpfung einzelner Funktionen, was es in seiner Gesamtheit auch zu einer Funktion macht. Es ergibt sich also die Frage, wie eine Funktion komplexe Probleme aus unserer Welt lösen kann.
+
+\subsection{Das McCulloch-Pitts-Neuron}
+
+Das erste mathematische Modell eines biologischen Neurons ist das McCulloch-Pitts-Neuron von Warren McCulloch und Walter Pitts. In ihrer Publikation \autocite{mccullochLogicalCalculusIdeas1943}, veröffentlicht in 1943, beschreiben sie ein Modell, welches mit binären Signalen arbeitet, basierend auf dem Alles-oder-nichts-Gesetz, welches besagt, dass ein Neuron bei dem Erreichen eines bestimmten Aktionspotenzials, also einer bestimmten Schwelle, mit maximaler Stärke ausgelöst wird. Das Neuron kann also eine Ausgabe \(a\) von \(1\) für ausgelöst oder \(0\) für nicht ausgelöst vorhersagen \autocite{chandraMcCullochPittsNeuronMankind2022}.
+
+Neuronen bestehen in diesem Modell aus zwei Teilen: Die im vorigen Absatz erwähnte Schwellenfunktion \(f\), welche ein Signal ausgeben kann sowie eine Summation \(\sum\) der Eingangs-Impulse \(\vec{x}\). Diese werden als Eingangsmenge in Form eines Vektors \(\vec{x}\) dargestellt, wobei \(x_i\) der \(i\)-te Eingangs-Impuls ist. Dabei kann ein solcher Impuls, wie die Ausgabe \(a\), nur \(0\) oder \(1\) sein \autocite{chandraMcCullochPittsNeuronMankind2022}.
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \tikzstyle{unit}=[draw,shape=circle,minimum size=1cm];
+
+    \node (X0) at (-2, 1) {$x_1$};
+    \node (X1) at (-2, 0) {$x_2$};
+    \node (dots) at (-2, -1) {$\vdots$};
+    \node (X3) at (-2, -2) {$x_d$};
+    \node (XN) at (-0, -2) {$x_i \in \{0, 1\}$};
+
+    \node[unit] (N) at (0, -0.5) {$\sum$};
+    \node[unit] (A) at (2, -0.5) {$f$};
+    \node (Z) at (4, -0.5) {$a \in \{0, 1\}$};
+
+    \draw [decorate,decoration={brace,amplitude=5pt}] (-0.5,0.5) -- (2.5,0.5) node[midway,above,yshift=0.5em]{Neuron};
+
+    \draw[->] (X0) -- (N);
+    \draw[->] (X1) -- (N);
+    \draw[->] (X3) -- (N);
+    \draw[->] (N) -- (A);
+    \draw[->] (A) -- (Z);
+  \end{tikzpicture}
+
+  \caption{Funktionsweise eines McCulloch-Pitts-Neurons}
+  \label{fig:McCullochPitts}
+\end{figure}
+
+% TODO: (Alles-oder-nichts-Gesetz)
+
+Eine solche Schwellenfunktion mit einem Sprung von $0$ zu $1$ lässt sich als Verschiebung der Einheitsstufenfunktion $\Theta$, auch \textit{Heaviside-Funktion} genannt, auch der $x$-Achse darstellen.
+
+\begin{align*}
+  \Theta(z)   & = \begin{cases}
+                    1 & \text{für} \ z \geq 0 \\
+                    0 & \text{für} \ z < 0
+                  \end{cases} \\
+  \Theta(z-n) & = \begin{cases}
+                    1 & \text{für} \ z \geq n \\
+                    0 & \text{für} \ z < n
+                  \end{cases}
+\end{align*}
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-3, xmax=3,
+        ymin=-2, ymax=2,
+        axis lines = middle,
+        xtick={-5,...,5},
+      ]
+
+      \addplot[
+        domain=-5:5,
+        blue,
+        thick,
+        const plot
+      ] coordinates {
+          (-3, 0)
+          (0, 1)
+          (3, 1)};
+      \addlegendentry{\(\Theta(z)\)}
+
+      \addplot[
+        domain=-5:5,
+        red,
+        thick,
+        const plot
+      ] coordinates {
+          (-3, 0)
+          (2, 1)
+          (3, 1)};
+      \addlegendentry{\(\Theta(z-2)\)}
+    \end{axis}
+
+  \end{tikzpicture}
+
+  \caption{Einheitsstufenfunktion mit und ohne Verschiebung}
+  \label{fig:Heaviside}
+\end{figure}
+
+Die vorhergesagte Ausgabe \(a\) des Neurons mit einer Eingabe \(\vec{x}\) der Dimension $d$ und dem Schwellenwert, genannt \textit{Bias} \(b\) und einheitlicher Weise das Negativ des eigentlichen Schwellenwerts, ist also durch folgende Formel definiert:
+\[
+  a(\vec{x}) = \Theta \left( \left( \sum_{i=1}^{d} x_i \right) + b \right)
+\]
+
+Ein Beispiel für die Ausgabe eines McCulloch-Pitts-Neurons mit dem Bias $b = -2$ und der Eingabedimensionalität $d = 5$ ist:
+\begin{align*}
+  \vec{x}    & = \begin{bmatrix}
+                   1 & 0 & 1 & 0 & 1
+                 \end{bmatrix}                      \\
+  a(\vec{x}) & = \Theta (( 3 ) + (-2)) = \Theta (1) = 1
+\end{align*}
+
+\subsection{Das Perzeptron} \label{sec:perzeptron}
+
+Die offensichtliche Limitation eines McCulloch-Pitts-Neuronens ist, dass es nur mit binären Werten arbeitet. Ein fortgeschritteneres ANN, das \textit{Perzeptron}, über das Frank Rosenblatt in einem in 1957 publizierten Bericht \autocite{rosenblatt1957perceptron} schrieb, überkam diese Limitation und bildet auch heute immer noch die Grundlage von ANNs.
+
+Ein Perzeptron kann entscheiden, ob eine Eingabe einer bestimmten Kategorie, welche als \textit{Klasse} bezeichnet wird, angehört. Es besteht aus mehreren Neuronen, welche in zwei Schichten aufgeteilt sind: die Eingangs-Schicht und die Ausgangs-Schicht. Die Eingangs-Neuronen übernehmen je eine Zahl aus der Eingangsmenge \(\vec{x}\), welche, anders als beim McCulloch-Pitts-Neuron, aus Zahlen aus dem reellen Zahlenbereich \(\mathbb{R}\) besteht. Da das Netz mehrere Neuronen in verschiedenen Schichten besitzt, gibt es auch mehrere Ausgänge dieser \(a^{[l]}_i\) wobei die Expontentenziffer \([l]\) die aktuelle Schicht darstellt und die Neuronnummer \(i\) die Nummer des Neurons darstellt. Die Ausgangs-Neuronen funktionieren insofern wie das McCulloch-Pitts-Neuron, als dass sie die eingehenden Werte der Synapsen summieren und das Ergebnis in die Einheitsstufenfunktion einspeisen. Diese nimmt dann die \textit{Klassifizierung} vor, sagt also aus, ob, wenn das Ergebnis $1$ ist, die Eingabe der Klasse angehört, oder, wenn das Ergebnis $0$ ist, die Eingabe der Klasse nicht angehört.
+
+Die wichtigste Eigenschaft, die mit der Einführung von reellen Zahlen plausibel wird, ist die individuelle Anpassung jeder Synapse mit Gewichtungen $\vec{w}$. Der Wert, den ein Ausgabe-Neuron von einem Eingabe-Neuron \(a^{[1]}_i\) als Signal bekommt, ist nun nicht nur die Ausgabe dessen, sondern wird multipliziert mit der Gewichtung $w_i$ der Synapse, welche die beiden Neuronen verbindet.
+
+Der Bias \(b\) wird hier als getrennte Gewichtung für ein Eingabe-Neuron mit dem konstanten Wert $1$ implementiert. Wegen des Faktors \(1\) kann der Bias einfacher Weise, nach der Summierung der Eingangswerte, getrennt addiert werden \autocite[4-5]{abdiNeuralNetworkPrimer1994}, \autocite[3]{suzukiArtificialNeuralNetworks2011}.
+
+Welchen vorhergesagten Ausgangswert \(\hat{y}\) ein Perzeptron am Ende für einen bestimmten Eingangswert $\vec{x}$ hat, ist also abhängig von den Gewichtungen und dem Bias. Deswegen bezeichnet man sie als die \textit{Parameter} eines ANNs. Abbildung \ref{fig:perzeptron} zeigt ein Modell eines Perzeptrons mit der Eingabedimension $d=2$ und der Ausgabedimension $d_o=1$ an.
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \tikzstyle{unit}=[draw,shape=circle,minimum size=1cm];
+
+    \node[unit, label={[align=center]above:{Eingabe-\\Schicht:}}] (A11) at (0, 1.5) {$a_1^{[1]}$};
+    \node[unit] (A21) at (0, 0) {$a_2^{[1]}$};
+    \node[unit] (A31) at (0, -1.5) {$1$};
+
+    \draw[->] (-2, 1.5) -- node[above]{$x_1$} (A11);
+    \draw[->] (-2, 0) -- node[above]{$x_2$} (A21);
+
+    \node[unit, label={[align=center, label distance=1em]above:{Ausgabe-\\Schicht:}}] (A12) at (2, 0) {$a_1^{[2]}$};
+
+    \draw[->] (A11) -- node[above] {$w_1$} (A12);
+    \draw[->] (A21) -- node[above] {$w_2$} (A12);
+    \draw[->] (A31) -- node[above] {$b$} (A12);
+
+    \node (Y) at (5, 0) {$\hat{y} \in \{0, 1\}$};
+
+    \draw[->] (A12) -- (Y);
+  \end{tikzpicture}
+
+  \caption{Ein Perzeptron}
+  \label{fig:perzeptron}
+\end{figure}
+
+Da die Eingabewerte \(\vec{x}\) und die Gewichtungen \(\vec{w}\) beide Vektoren sind, kann die Multiplikation der einzelnen Werte auch als Skalarprodukt von den Vektoren angegeben werden:
+\begin{align*}
+  a(\vec{x}) & = \Theta \left( \sum_{i=1}^{d} x_i w_i +b \right) \\
+  a(\vec{x}) & = \Theta ( \vec{x} \cdot \vec{w} + b )
+\end{align*}
+
+Es stellt sich jedoch die Frage, ob mit einem so simplen Aufbau jede Aufgabe lösbar ist. Die Limitation eines Perzeptrons lässt sich gut an einem Perzeptron mit einer zwei-dimensionalen Eingangsmenge \(\{x, y\}\) darstellen:
+\begin{align*}
+  a(x, y)                            & = \Theta ( w_1 x + w_2 y + b )                                         \\
+  0                                  & \leq w_1 x + w_2 y + b                  &  & \vert -b                  \\
+  -b                                 & \leq w_1 x + w_2 y                      &  & \vert : w_2               \\
+  -\frac{b}{w_2}                     & \leq \frac{w_1 x}{w_2} + y              &  & \vert - \frac{w_1 x}{w_2} \\
+  -\frac{b}{w_2} - \frac{w_1 x}{w_2} & \leq  y                                                                \\
+  y                                  & \geq -\frac{w_1}{w_2} x - \frac{b}{w_2}
+\end{align*}
+Die resultierende Funktionsungleichung ist linear. Für alle Werte über dem Graphen dieser ist diese Ungleichung wahr, die Ausgabe des Perzeptrons ist also \(\hat{y}=1\) und für alle Werte unter dem Graphen ist sie falsch, die Ausgabe also \(\hat{y}=0\).
+
+Die Limitation mit dem Aufbau eines Perzeptrons ist also, dass es nur lineare Funktionen annehmen kann und deshalb die Eingaben durch eine Hyperebene, im zwei-dimensionalen Raum also eine Gerade, in \enquote{nicht der Klasse angehörend} und \enquote{der Klasse angehörend} aufteilbar sein müssen. Diese Eigenschaft wird \textit{lineare Separierbarkeit} genannt \autocite[7]{suzukiArtificialNeuralNetworks2011}. Ein Beispiel für eine linear separierbare Funktion ist das OR-Gatter, zu sehen in Abbildung \ref{fig:OR} mit einer separierenden Gerade. Ein Beispiel für eine Funktion, die dies hingegen nicht ist, ist das XOR-Gatter, zu sehen in Abbildung \ref{fig:XOR}, hier lässt sich keine Gerade durch die Werte ziehen, sodass sie in ihre Klassen eingeteilt sind \autocite[9]{abdiNeuralNetworkPrimer1994}.
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = {\textwidth},
+        height = {0.5\textwidth},
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-1, xmax=2,
+        ymin=-1, ymax=2,
+        axis lines = middle,
+        xtick={-5,...,5},
+        xlabel={Eingabe 1},
+        ylabel={Eingabe 2},
+      ]
+      \addplot[
+        only marks,
+        blue,
+        mark=*
+      ] coordinates {(0,0)};
+      \addlegendentry{\(\hat{y} = 0\)};
+
+      \addplot[
+        only marks,
+        red,
+        mark=*
+      ] coordinates {(0,1) (1,0) (1,1)};
+      \addlegendentry{\(\hat{y} = 1\)};
+
+      \addplot[
+        black
+      ] {-1 * x + 1/2};
+
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{Das OR-Gatter}
+  \label{fig:OR}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = {\textwidth},
+        height = {0.5\textwidth},
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-1, xmax=2,
+        ymin=-1, ymax=2,
+        axis lines = middle,
+        xtick={-5,...,5},
+        xlabel={Eingabe 1},
+        ylabel={Eingabe 2},
+      ]
+      \addplot[
+        only marks,
+        blue,
+        mark=*
+      ] coordinates {
+          (0,0)
+          (1,1)
+        };
+      \addlegendentry{\(\hat{y} = 0\)};
+
+      \addplot[
+        only marks,
+        red,
+        mark=*
+      ] coordinates {
+          (0,1)
+          (1,0)
+        };
+      \addlegendentry{\(\hat{y} = 1\)};
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{Das XOR-Gatter}
+  \label{fig:XOR}
+\end{figure}
+
+\section{Feedforward-Netzwerke}
+
+\subsection{Die logistische Funktion}
+
+Eine Alternative zur Einheitsstufenfunktion eines Perzeptrons ist die logistische Funktion $\sigma$, welche auch Grenzen von $0$ und $1$ besitzt, aber statt einem Sprung eine S-Kurve, zu sehen in Abbildung \ref{fig:logistic}, besitzt \autocite[17]{abdiNeuralNetworkPrimer1994}. Allgemein werden diese Funktionen, die nach der Summation in einem Neuron verwendet werden, als \textit{Aktivierungsfunktion} bezeichnet. Ein ANN mit einer logistischen Funktion ist nun kein Perzeptron mehr, sondern ein allgemeines \textit{feedforward-Netz}, danach benannt, dass die Signale im Netz vorwärts von einer Schicht zur nächsten transportiert werden. Der Vorteil an dieser Funktion ist, dass man durch einen reellen Ausgabewert sehen kann, wie sicher sich das ANN mit der Vorhersage ist und wie sich das Ändern der Parameter auf die Funktion auswirkt \autocite[Kapitel 1]{nielsenNeuralNetworksDeep2015}. Wie man \enquote{richtige} Parameter bestimmt, wird in Kapitel \ref{sec:optimierung} erläutert.
+
+Die Funktionsgleichung der logistischen Funktion ist:
+\[
+  \sigma(z) = \frac{e^z}{1 + e^z} = \frac{1}{1 + e^{-z}}
+\]
+
+\begin{figure}[H]
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-5, xmax=5,
+        % ymin=-5, ymax=5,
+        axis lines = middle,
+        xtick={-5,...,5},
+      ]
+      \addplot[
+        domain=-5:5,
+        blue,
+        thick
+      ] {(1)/(1 + exp(-x))};
+      \addlegendentry{\(\sigma(z)\)}
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{logistische Funktion}
+  \label{fig:logistic}
+\end{figure}
+
+\subsection{Mehrklassige Klassifikation}
+
+Ein Perzeptron mit einem Neuron in der Ausgabe-Schicht kann nur zwischen zwei verschiedenen Klassen differenzieren. Ein solcher Algorithmus wird deswegen als \textit{binäre Klassifizierung} bezeichnet \autocite{sharmaWhatHellPerceptron2019}.
+
+In diesem Fall hat jedes Ausgabe-Neuron eigene Synapsen, welche es wie in der binären Klassifikation mit jedem Neuron in der Eingabe-Schicht verbindet. Es gibt nun also nicht nur so viele Gewichtungen wie die Eingabedimension $d$, sondern diese Zahl multipliziert mit der Ausgabedimension $d_o$. Da jeweils das Eingabe- und Ausgabe-Neuron einer Gewichtung wichtig ist, kann sie als $w_{ij}$ dargestellt werden, wobei $i$ das Eingabeneuron \(a^{[1]}_i\) und $j$ die Ausgabeneuron \(a^{[2]}_j\) bezeichnet. Anstatt eines Gewichtungs-Vektors \(\vec{w}\) wird also eine Gewichtungs-Matrix \(W\) verwendet:
+\[
+  W =
+  \begin{bmatrix}
+    w_{11} & w_{12} & \cdots & w_{1d_o} \\
+    a_{21} & w_{22} & \cdots & w_{2d_o} \\
+    \vdots & \vdots & \ddots & \vdots   \\
+    w_{d1} & w_{d2} & \cdots & w_{dd_o}
+  \end{bmatrix}
+\]
+
+Da ein Ausgabe-Neuron auch einen Bias braucht, wird hier ein Vektor \(\vec{b}\) für die Biase verwendet, wobei $b_i$ der Bias von \(a^{[2]}_i\) ist. In der Abbildung \ref{fig:multiclass}, sowie den folgenden Abbildungen, werden die Biase sowie die Bezeichnungen für die Gewichtungen aus Platzgründen weggelassen, sie werden jedoch weiterhin im Modell verwendet.
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \tikzstyle{unit}=[draw,shape=circle,minimum size=1cm];
+
+    \node[unit, label={[align=center] above:{Eingabe-\\Schicht:}}] (A11) at (0, 1.5) {$a_1^{[1]}$};
+    \node[unit] (A21) at (0, 0) {$a_2^{[1]}$};
+    \node[unit] (A31) at (0, -1.5) {$a_3^{[1]}$};
+
+    \draw[->] (-2, 1.5) -- node[above]{$x_1$} (A11);
+    \draw[->] (-2, 0) -- node[above]{$x_2$} (A21);
+    \draw[->] (-2,-1.5) -- node[above]{$x_3$} (A31);
+
+    \node[unit, label={[align=center, label distance=1em]above:{Ausgabe-\\Schicht:}}] (A13) at (2, 0.75) {$a_1^{[2]}$};
+    \node[unit] (A23) at (2, -0.75) {$a_2^{[2]}$};
+
+    \draw[->] (A11) -- (A13);
+    \draw[->] (A11) -- (A23);
+    \draw[->] (A21) -- (A23);
+    \draw[->] (A21) -- (A13);
+    \draw[->] (A31) -- (A13);
+    \draw[->] (A31) -- (A23);
+
+    \draw[->] (A13) -- node[above]{$\hat{y}_1$} (4, 0.75);
+    \draw[->] (A23) -- node[above]{$\hat{y}_2$}  (4, -0.75);
+  \end{tikzpicture}
+
+  \caption{Mehrklassiges Perzeptron mit \(d_o=2\)}
+  \label{fig:multiclass}
+\end{figure}
+
+In dem ANN der Abbildung \ref{fig:multiclass} ist zu sehen, dass durch die zwei Ausgabe-Neuronen \(a_i^{[2]}\) nun auch zwei Ausgaben gibt, welche den Vektor \(\mathbf{\hat{y}}\) bilden, hier nicht mit einem Vektorpfeil notiert, da dieser mit dem Zirkumflex interferiert. Diese Ausgaben könnten verschieden interpretiert werden, zum Beispiel bei einer Einheitsstufenfunktion als eine quaternäre Klassifizierung, wo jede der vier Kombinationen der Ausgaben eine Klasse darstellt.
+
+\subsection{Die Softmax-Funktion}
+
+Eine einheitliche Benutzung dieser Ausgaben wird mit der Softmax-Funktion ermöglicht. Die Softmax-Funktion ist eine vektorwertige Funktion mit einem Vektor als Argument, was bedeutet, dass sie sowohl ihre Definitions- als auch ihre Zielmenge ein Vektorraum ist, hier mit der Dimension der Ausgaben $d_o$, da diese verarbeitet werden sollen. Die Funktion konvertiert einen Vektor in eine Wahrscheinlichkeitsverteilung, wobei jedes Element \(\hat y_i\) Wahrscheinlichkeit ist, mit der das Netzwerk sagt, dass dies die korrekte Klasse sei. Sie kann also als eine logistische Funktion für mehrklassige Klassifikation gesehen werden, sichtbar an der S-Kurve in der Abbildung \ref{fig:softmax}.
+
+Die Ähnlichkeit zur logistischen Funktion sieht man auch an der Funktionsgleichung, bei dieser auch die e-Funktion durch sich selbst geteilt wird, bei der Softmax-Funktion jedoch durch die Summe aller e-Funktionen des Vektors:
+\[
+  \sigma(\vec{z})_i = \frac{ e^{z_i} }{ \sum_{j=1}^{d_o} e^{z_j} }
+\]
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xlabel={$z_1$},
+        ylabel={$z_2$},
+        zlabel={$\sigma$},
+        view/az={135},
+      ]
+      \addplot3[
+        domain=-5:5,
+        mesh,
+        draw=blue,
+      ] {(e^x)/(e^x+e^y)};
+      \addlegendentry{\(\sigma(\vec{z})_1\)}
+
+      \addplot3[
+        domain=-5:5,
+        mesh,
+        draw=red,
+      ] {(e^y)/(e^x+e^y)};
+      \addlegendentry{\(\sigma(\vec{z})_2\)}
+
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{Softmax-Funktion von einem zwei-dimensionalem Vektor $\vec{z}$}
+  \label{fig:softmax}
+\end{figure}
+
+\subsection{Mehrschichtige Netzwerke}
+
+Um die Limitation des Perzeptrons, nur linear separierbare Probleme lösen zu können, zu überwinden, können zwischen der Eingabe- und der Ausgabeschicht weitere Schichten platziert werden, siehe Abbildung \ref{fig:mlp}, dessen Neuronen mit einer Aktivierungsfunktion eine nicht-lineare Funktion \(g\) verwenden und somit die Linearität des Perzeptrons vermeiden \autocite[18]{abdiNeuralNetworkPrimer1994}. Diese Schichten werden als \textit{versteckte Schichten} bezeichnet, da sie weder vom Ausgang noch vom Eingang \enquote{sichtbar} sind.
+
+Die versteckten Neuronen agieren, mit Ausnahme einer verschiedenen Aktivierungsfunktion, gleich wie die Ausgangs-Neuronen und brauchen so, siehe Abbildung \ref{fig:mlp}, auch ihre eigenen Gewichtungen und Biase. Statt nur einem Gewichtungs-Vektor und nur einem Bias-Vektor werden also mehrere benötigt, welche jeweils, wie die Ausgaben einer Schicht \(\vec{a^{[l]}}\), mit der Nummer der Schicht \([l]\) im Exponenten angegeben werden.
+
+Hierbei ist jedoch zu beachten, dass die Parameter jeweils nur zwischen zwei Schichten benötigt. Die Gewichtungen \(W^{[l]}\) und die Biase \(\vec{b^{[l]}}\) werden also zwischen den Schichten \([l]\) und \([l+1]\) benutzt und so gibt es weniger Parameter gibt als die gesamte Anzahl der Schichten \(L\).
+
+\subsection{Die ReLU-Funktion}
+
+Es gibt für die Aktivierungsfunktion der versteckten Schichten \(g\) unendlich viele Möglichkeiten; sie soll nur nicht linear sein. Die ReLU-Funktion $R$ hat sich jedoch als die effektivste erwiesen. Sie ist eine einfache Modifikation der Ursprungsgeraden $y=x$, um das ANN nicht mehr linear zu machen. Für alle Werte $x > 0$ wird der Funktionswert gleich null gesetzt, zu sehen in Abbildung \ref{fig:relu} \autocite{sharmaActivationFunctionsNeural2022}. Als Formel kann dies wie folgt dargestellt werden:
+\begin{align*}
+  R(z) & = \begin{cases}
+             z & \text{für} \ z \geq 0 \\
+             0 & \text{für} \ z < 0
+           \end{cases} \\
+       & = \max(0, z)
+\end{align*}
+
+\begin{figure}[H]
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-5, xmax=5,
+        % ymin=-5, ymax=5,
+        axis lines = middle,
+        xtick={-5,...,5},
+      ]
+      \addplot[
+        domain=-5:5,
+        blue,
+        thick
+      ] {max(0, x)};
+      \addlegendentry{ReLU}
+
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{ReLU-Funktion}
+  \label{fig:relu}
+\end{figure}
+
+\subsection{Die Feedforward-Architektur}
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \tikzstyle{unit}=[draw,shape=circle,minimum size=1cm];
+
+    \node[unit] (A11) at (0, 1.5) {$a_1^{[1]}$};
+    \node[unit] (A21) at (0, 0) {$a_2^{[1]}$};
+    \node[unit] (A31) at (0, -1.5) {$a_3^{[1]}$};
+
+    \draw[->] (-2, 1.5) -- node[above]{$x_1$} (A11);
+    \draw[->] (-2, 0) -- node[above]{$x_2$} (A21);
+    \draw[->] (-2,-1.5) -- node[above]{$x_3$} (A31);
+
+    \node[unit, label=above:{ReLU}] (A12) at (2, 1.5) {$a_1^{[2]}$};
+    \node[unit] (A22) at (2, 0) {$a_2^{[2]}$};
+    \node[unit] (A32) at (2, -1.5) {$a_3^{[2]}$};
+
+    \draw[->] (A11) -- (A12);
+    \draw[->] (A11) -- (A22);
+    \draw[->] (A11) -- (A32);
+    \draw[->] (A21) -- (A12);
+    \draw[->] (A21) -- (A22);
+    \draw[->] (A21) -- (A32);
+    \draw[->] (A31) -- (A12);
+    \draw[->] (A31) -- (A22);
+    \draw[->] (A31) -- (A32);
+
+    \node[unit, label=above:{Softmax}] (A13) at (4, 0.75) {$a_1^{[3]}$};
+    \node[unit] (A23) at (4, -0.75) {$a_2^{[3]}$};
+
+    \draw[->] (A12) -- (A13);
+    \draw[->] (A12) -- (A23);
+    \draw[->] (A22) -- (A23);
+    \draw[->] (A22) -- (A13);
+    \draw[->] (A32) -- (A13);
+    \draw[->] (A32) -- (A23);
+
+    \draw[->] (A13) -- node[above]{$\hat{y}_1$} (6, 0.75);
+    \draw[->] (A23) -- node[above]{$\hat{y}_2$}  (6, -0.75);
+  \end{tikzpicture}
+
+  \caption{Feedforward-Netzwerk mit einer versteckten Schicht}
+  \label{fig:mlp}
+\end{figure}
+
+Der Ausgang einer versteckten Schicht wird als Eingang der nächsten versteckten Schicht oder, wenn keine mehr vorhanden ist, als Eingang für die Ausgabe-Schicht verwendet. Je mehr Schichten ein ANN also hat, desto länger wird die Formel. Für die Abbildung \ref{fig:mlp} kann die Formel für die Ausgabe \(\mathbf{\hat{y}}\) abhängig von der Eingabe \(\vec{x}\) wie folgt erlangt werden:
+\begin{align*}
+  \mathbf{\hat{y}} & = \vec{a}^{[3]}                                                             \\
+  \vec{a}^{[3]}    & = \sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]})                             \\
+  \vec{a}^{[2]}    & = \sigma(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]})                             \\
+  \vec{a}^{[1]}    & = \vec{x}
+  \intertext{Die komplette Formel lautet also:}
+  \mathbf{\hat{y}} & = \sigma(W^{[2]} (\sigma(W^{[1]} \vec{x} + \vec{b}^{[1]})) + \vec{b}^{[2]})
+\end{align*}
+
+In den folgenden Kapiteln wird von einem ANN ähnlich zur Abbildung \ref{fig:mlp} ausgegangen, welches in den versteckten Schichten die ReLU-Aktivierungsfunktion und in der Ausgangs-Schicht die Softmax-Aktivierungsfunktion verwendet.
+
+\section{Evaluieren und Trainieren eines Netzwerks} \label{sec:optimierung}
+
+Nachdem ich die Struktur und Funktionsweise eines Feedforward-Netzwerks verstanden hatte, konnte ich mich mit meiner Leitfrage beschäftigen. Erstmal stellte sich mir die Frage, wie ein ANN überhaupt \enquote{lernt}. In Kapitel \ref{sec:perzeptron} wurde definiert, dass der Ausgang des Netzwerks von den Parametern von diesem abhängt. Damit ein ANN \enquote{funktioniert} müssen also Parameter gewählt werden, die eine korrekte Ausgabe produzieren.
+
+Um wie biologische Netzwerke lernen zu können, muss ein ANN jedoch erst einmal wissen, was die korrekte Ausgabe ist. Es wird ein Datensatz \(S\) mit mehreren Eingaben \(\vec{x}\) und den gewünschten Ausgaben \(\vec{y}\), bezeichnet als \textit{Ziele}. Je größer dieser Datensatz ist, desto mehr \enquote{Erfahrung} sammelt das ANN und desto besser kann es korrekte Ausgaben produzieren \autocite[Kapitel 1]{nielsenNeuralNetworksDeep2015}.
+
+Da die Softmax-Funktion eine Wahrscheinlichkeitsverteilung ist, aber nur ein Wert korrekt ist, hat der Zielvektor \(\vec{y}\) also nur für ein Element den Wert $1$, für den Rest den Wert $0$. Eine solche Kodierung eines Vektors wird als \textit{One-Hot-Kodierung} bezeichnet \autocite{brownleeOrdinalOneHotEncodings2020}.
+
+Wichtig ist hier auch, dass die Eingaben eine gewisse Variation haben. Bei einem Netzwerk zum Klassifizieren des XOR-Gatters gibt es nur vier mögliche Eingaben, bei einer Klassifizierung einer Zeichnung eines Hundes mit hunderten von Pixeln ist es jedoch unmöglich jede Möglichkeit in den Datensatz aufzunehmen einen Hund zu zeichnen. Deshalb sollten also verschiedene Weisen einen solchen zu zeichnen in den Datensatz aufgenommen werden, sodass das Netz nicht nur lernt, wie ein Hund auf eine bestimmte Weise gezeichnet werden kann, sondern wie er auf verschiedene Weisen gezeichnet werden kann.
+
+\subsection{Die Verlustfunktion} \label{sec:verlustfunktion}
+
+Um sehen zu können, wie gut ein ANN funktioniert, benötigt man eine Verlustfunktion $\ell$. Diese vergleicht die vorhergesagten Ausgaben des Netzwerks mit den erwarteten Ausgaben. Dabei repräsentiert ein Verlust von $0$ eine perfekte Ausgabe; diesem Wert sollte sich also genährt werden.
+
+Die einfachste Verlustfunktion ist der Durchschnitt der betraglichen Differenz $|\mathbf{\hat{y}} - \vec{y}|$. Dies wird als der mittlere betragliche Fehler, kurz \textit{MAE} von dem englischen \enquote{Mean Absolute Error}, bezeichnet \autocite{fortunerMachineLearningGlossary}. Da beiden Vektoren die Dimension der Ausgangs-Schicht $d_o$ haben, sieht die Formel für MAE wie folgt aus:
+\[
+  \ell(\mathbf{\hat{y}}, \vec{y}) = \frac{1}{d_o} \sum_{i=1}^{d_o} |\hat{y}_i - y_i|
+\]
+
+\begin{figure}[H]
+  \centering
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xlabel={$\hat{y}$},
+        ylabel={$y$},
+        zlabel={$\ell$},
+        view/az={150},
+        view/v={60},
+      ]
+      \addplot3[
+        mesh,
+        draw=blue,
+      ] {abs(x-y)};
+      \addlegendentry{MAE}
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{Mittlerer betraglicher Fehler von zwei Skalaren $\hat{y}$ und $y$}
+  \label{fig:loss}
+\end{figure}
+
+\subsection{Optimierung} \label{sec:optimierung}
+
+Wie in Kapitel \ref{sec:verlustfunktion} beschrieben, funktioniert ein ANN besser, je näher die Verlustfunktion an dem idealen Wert von $0$ liegt. Dies ist jedoch für viele Eingaben eines Trainingsdatensatzes nicht realistisch, auch wenn die Ausgabe der Softmax-Funktion die höchste Wahrscheinlichkeit für die richtige Ausgabe hat, da die Verlustfunktion mit den eigentlichen Werten der Ausgabe, nicht mit der Interpretation der Wahrscheinlichkeitsverteilung, rechnet. Es wird also lediglich ein Minimum der Verlustfunktion gesucht.
+
+\newpage
+
+Die Minima der Funktion sind jedoch nicht algebraisch mithilfe einer einzigen Ableitung bestimmbar, da ein ANN mit vielen Parametern arbeitet, welche jeweils ihren eigenen Einfluss auf das Endergebnis haben. Die Richtung der stärksten Steigung einer Funktion mit mehreren Argumenten kann durch den \textit{Gradienten} $\nabla$ angegeben werden.
+
+Dieser ist ein Vektor und hat die einzelnen partiellen Ableitungen der Argumente als Komponenten. Um ein lokales Minimum der Verlustfunktion $\ell$ zu finden, wird also der negative Gradient $-\nabla \ell$ gesucht, der die Richtung angibt, in der die Funktion am stärksten sinkt. \autocite[Kapitel 2]{sanderson3Blue1Brown}, \autocite[3]{lecunTheoreticalFrameworkBackpropagation1988}.
+
+Mit diesem negativen Gradienten \(-\nabla \ell\) kann der Algorithmus des \textit{Gradientenverfahren} verwendet werden. Beim Gradientenverfahren werden die Parameter des ANN schrittweise verändert, sodass die Funktion sich in Richtung eines Minimums bewegt.
+
+Einer Gewichtung \(W^{[l]}\) würde also die partielle Ableitung \(- \frac{\partial \nabla \ell}{\partial W^{[l]}}\) hinzugefügt werden. Wichtig ist hier, dass diese partielle Ableitung nicht unverändert hinzugefügt werden kann, da die Größe der partiellen Ableitung den Einfluss der Variable auf den gesamten Gradienten angibt, nicht aber die Entfernung zum Minimum. Es sollte also in kleinen Schritten verändert werden; der Faktor, mit dem die partielle Ableitung multipliziert wird, sollte unter $1$ liegen. Die Größe dieses Faktors wird als die \textit{Lernrate} \(\eta\) bezeichnet \autocite[Kapitel 2]{sanderson3Blue1Brown}. Eine Änderung einer Gewichtung sieht also wie folgt aus:
+\[
+  W^{[l]} = W^{[l]} - \eta \frac{\partial \nabla \ell}{\partial W^{[l]}}
+\]
+
+\subsection{Modifikationen am Gradientenverfahren}
+
+Eine kostante Lernrate \(\eta\) würde dazu führen, dass die Variablen, sobald sie nah sind an Werten, die in einem Minimum der Verlustfunktion resultieren, über diese Werte hinaus gehen könnten. Damit sich die Variablen in diese Werte einpendeln können, sollte die Lernrate nach jedem Schritt, als \textit{Epoche} $t$ bezeichnet, reduziert werden. Dies nennt man \textit{Verfall der Lernrate} \autocite{haswaniLearningRateDecay2021}. Die Rate dieses Verfalles ist die \textit{Verfallsrate} $\lambda$. Es werden deswegen verschiedene Lernraten in der Notation benötigt; die Lernrate für eine Epoche wird als \(\eta_t\) bezeichnet, wobei \(\eta_0\) die originale Lernrate ist. Die Formel für die Lernrate einer Epoche ist wie folgt:
+\[
+  \eta_t = \eta_0 \cdot \frac{1}{1+ \lambda \cdot t}
+\]
+Wenn wir von der originalen Lernrate \(\eta_0=0.1\) und einer Verfallsrate von \(\lambda = 1 \cdot 10^{-3} \) ausgehen, wäre die Lernrate bei der Epoche $t=1000$ also:
+\[
+  \eta_{1000} = 0.1 \cdot \frac{1}{1 + 1 \cdot 10^{-3} \cdot 1000} = 0.05
+\]
+
+\subsection{Die Kreuzentropie-Verlustfunktion}
+
+Das Problem mit linearen Verlustfunktionen wie MAE ist jedoch, dass sie mit logistischen Aktivierungsfunktionen wie der Softmax-Funktion ab einem gewissen Punkt nicht mehr gute Minima finden kann. Also wird eine Verlustfunktion verwendet, die für eine Wahrscheinlichkeitsverteilung wie die Softmax-Funktion vorhergesehen ist. Eine solche ist die \textit{Kreuzentropie} $H$ \autocite[Kapitel 3]{nielsenNeuralNetworksDeep2015}, \autocite{fortunerMachineLearningGlossary}:
+\[
+  H(\mathbf{\hat{y}}, \vec{y}) = -\sum_{i=1}^{d_o} y_{i} \ln(\hat{y}_{i})
+\]
+
+\section{Der Gradient}
+
+Auch wenn das Prinzip des Lernprozesses klar ist, fehlt immer noch der Gradient, den dieser Prozess ja braucht. Wie in Kapitel \ref{sec:optimierung} erwähnt, werden speziell nur die partiellen Ableitungen für die veränderbaren Parameter des Netzwerks, also den Gewichtungen und den Biasen, gebraucht.
+
+Um den Gradienten für jeweils eine Schicht $l$ der Parameter herauszufinden, muss die Verlustfunktion jeweils so ausgeschrieben werden, dass alle Parameter dieser Schicht darin vorhanden sind. Zur Einfachheit wird hier das ANN aus Abbildung \ref{fig:mlp} mit einer Kreuzentropie-Verlustfunktion verwendet:
+\[
+  \begin{aligned}
+    \ell
+     & = H(\mathbf{\hat{y}}, \vec{y})                                                                                           \\
+     & = H(\vec{a}^{[3]}, \vec{y})                                                                                              \\
+     & = H(\sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}), \vec{y})                            &  & \leftarrow \text{Schicht 2}  \\
+     & = H(\sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]}), \vec{y}) &  & \leftarrow  \text{Schicht 1} \\
+  \end{aligned}
+\]
+
+Nun können zuerst die partiellen Ableitungen für die Schicht 1 berechnet werden. Um die Formeln kürzer zu halten, wird die neue Variable \(z^{[l]} = (W^{[l]} \vec{a}^{[l]} + \vec{b}^{[l]})\) definiert:
+\begin{align*}
+  \frac{\partial \ell}{\partial \vec{a}^{[1]}}
+   & = \frac{\partial}{\partial \vec{a}^{[1]}} H(\sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]}))                                                                                                                                                                  \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial \vec{a}^{[1]}} \sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot \frac{\partial}{\partial \vec{a}^{[1]}} (W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial}{\partial \vec{a}^{[1]}} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]})                                                            \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot \frac{\partial}{\partial \vec{a}^{[1]}} (W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot W^{[1]}
+\end{align*}
+\begin{align*}
+  \frac{\partial \ell}{\partial W^{[1]}}
+   & = \frac{\partial}{\partial W^{[1]}} H(\sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]}))                                                                                                                                                                  \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial W^{[1]}} \sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot \frac{\partial}{\partial W^{[1]}} (W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial}{\partial W^{[1]}} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]})                                                            \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot \frac{\partial}{\partial W^{[1]}} (W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot \vec{a}^{[1]}
+\end{align*}
+\begin{align*}
+  \frac{\partial \ell}{\partial \vec{b}^{[1]}}
+   & = \frac{\partial}{\partial \vec{b}^{[1]}} H(\sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]}))                                                                                                                                                                  \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial \vec{b}^{[1]}} \sigma(W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot \frac{\partial}{\partial \vec{b}^{[1]}} (W^{[2]} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) + \vec{b}^{[2]})                                                \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial}{\partial \vec{b}^{[1]}} R(W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]})                                                            \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot \frac{\partial}{\partial \vec{b}^{[1]}} (W^{[1]} \vec{a}^{[1]} + \vec{b}^{[1]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial \vec{z}^{[2]}} \cdot W^{[2]} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}}
+\end{align*}
+
+Aufgrund der Verkettung der Funktionen wurde mehrmals die Kettenregel verwendet, was dazu führt, dass alle drei partielle Ableitungen dieser Schicht einen gleichen Faktor haben und bis auf den letzten Term gleich aussehen. Wie sich dies noch einfacher darstellen lässt, wird nach dem Ableiten der Parameter der zweiten Schicht klar:
+\begin{align*}
+  \frac{\partial \ell}{\partial \vec{a}^{[2]}}
+   & = \frac{\partial}{\partial \vec{a}^{[2]}} H(\sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}))                                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial \vec{a}^{[2]}} \sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]})                                                          \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot \frac{\partial}{\partial \vec{a}^{[2]}} (W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot W^{[2]}
+\end{align*}
+\begin{align*}
+  \frac{\partial \ell}{\partial W^{[2]}}
+   & = \frac{\partial}{\partial W^{[2]}} H(\sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}))                                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial W^{[2]}} \sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]})                                                          \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot \frac{\partial}{\partial W^{[2]}} (W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot a^{[2]}
+\end{align*}
+\begin{align*}
+  \frac{\partial \ell}{\partial \vec{b}^{[2]}}
+   & = \frac{\partial}{\partial \vec{b}^{[2]}} H(\sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}))                                                                                                                      \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial}{\partial \vec{b}^{[2]}} \sigma(W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]})                                                          \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot \frac{\partial}{\partial \vec{b}^{[2]}} (W^{[2]} \vec{a}^{[2]} + \vec{b}^{[2]}) \\
+   & = \frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial z^{[2]}}
+\end{align*}
+
+Es lässt sich erkennen, dass der Term \(\frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}} \cdot \frac{\partial \vec{a}^{[3]}}{\partial z^{[2]}} \cdot W^{[2]}\), welcher auch in den Ableitungen der ersten Schicht vorhanden ist, die partielle Ableitung von \(\vec{a}^{[2]}\) ist. Die Terme für die Ableitungen der ersten Schicht können also definiert werden als:
+\begin{align*}
+  \frac{\partial \ell}{\partial \vec{a}^{[1]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[2]}} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot W^{[1]}       \\
+  \frac{\partial \ell}{\partial W^{[1]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[2]}} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}} \cdot \vec{a}^{[1]} \\
+  \frac{\partial \ell}{\partial \vec{b}^{[1]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[2]}} \cdot \frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}}
+\end{align*}
+
+Nun werden noch die Ableitung der Kreuzentropie-Funktion \(\frac{\partial H(\vec{a}^{[3]})}{\partial \vec{a}^{[3]}}\), die Ableitung der Softmax-Funktion \(\frac{\partial \partial \vec{a}^{[3]}}{\partial z^{[2]}}\) und die Ableitung der ReLU-Funktion \(\frac{\partial \vec{a}^{[2]}}{\partial \vec{z}^{[1]}}\) benötigt.
+
+\subsection{Ableitung der Softmax- und Kreuzentropie-Funktionen}
+
+Weil die Softmax-Funktion und die Kreuzentropie-Funktion nur als $H(\sigma(z))$ vorkommen, kann die Ableitung auch zusammen berechnet werden:
+\[
+  \frac{d}{d\vec{z}} H(\sigma(\vec{z})) = \frac{dH(\sigma(\vec{z}))}{d\sigma(\vec{z})} \cdot \frac{d\sigma(\vec{z})}{d\vec{z}}
+\]
+
+Da die Softmax-Funktion einen Vektor als Funktionsargument nimmt und auch einen Vektor als Funktionswert zurückgibt, werden hier wie bei der Verlustfunktion mehr als eine Ableitung benötigt. Es wird hier also ein Operator ähnlich zum Gradient $\nabla$ benötigt. Da die Softmax-Funktion aber auch einen Vektor als Funktionswert zurückgibt, wird anstatt eines Vektors eine ganze Matrix an partiellen Ableitungen benötigt. Diese Matrix wird als die Jacobi-Matrix $J$ bezeichnet \autocite{benderskySoftmaxFunctionIts}.
+
+Die Jakobi-Matrix für eine Funktion $\vec{f} : \mathbb{R}^n \rightarrow \mathbb{R}^m$ mit dem Vektor $\vec{z}$ als Funktionsargument ist wie folgend definiert:
+\[
+  \begin{aligned}
+    J      & = \frac{\partial \vec{f}(\vec{z})}{\partial \vec{z}}                       \\
+    j_{ij} & = \frac{\partial f(z_i)}{\partial z_j} = \frac{\partial f_i}{\partial z_j}
+  \end{aligned}
+\]
+
+Nach der Summenregel ist die Ableitung einer Summe die Summe aller einzelnen Ableitungen. Die Jacobi-Matrix für die Kreuzentropie von der Softmax-Funktion lautet also:
+\[
+  \begin{aligned}
+    \frac{\partial H(\sigma_i) }{\partial z_j} & = \frac{\partial}{\partial z_j} \left( - \sum_{i=1}^{d_o} y_i \cdot \ln(\sigma_i) \right) \\
+                                               & = - \sum_{i=1}^{d_o} y_i \cdot \frac{\partial}{\partial z_j} \ln(\sigma_i)
+  \end{aligned}
+\]
+
+Zuerst der Term \(\frac{\partial}{\partial z_j} \ln(\sigma_i)\):
+\begin{align*}
+  \frac{\partial \ln(\sigma_i)}{\partial z_j}
+   & = \frac{\partial}{\partial z_j} \cdot \ln \left(\frac{ e^{z_i} }{ \sum_{l=1}^{n} e^{z_l}} \right)                                                                \\
+   & = \frac{\partial}{\partial z_j} \cdot \left( z_i - \ln\left(\sum_{l=1}^{n} e^{z_l}\right) \right)                                                                \\
+   & = \frac{\partial z_i}{\partial z_j} - \frac{\partial}{\partial z_j} \ln\left(\sum_{l=1}^{n} e^{z_l}\right)                                                       \\
+   & = \frac{\partial z_i}{\partial z_j} - \frac{1}{\sum_{l=1}^{n} e^{z_l}} \cdot \frac{\partial}{\partial z_j} \left(\sum_{l=1}^{n} e^{z_l}\right)                   \\
+   & = \frac{\partial z_i}{\partial z_j} - \frac{1}{\sum_{l=1}^{n} e^{z_l}} \cdot \frac{\partial}{\partial z_j} (e^{z_1}+ e^{z_2}+ \dots + e^{z_j} + \dots + e^{z_n})
+  \intertext{Alle Summanden außer $e^{z_j}$ leiten zu $0$ ab:}
+   & =   \frac{\partial z_i}{\partial z_j} - \frac{1}{\sum_{l=1}^{n} e^{z_l}} \cdot e^{z_j}                                                                           \\
+   & =  \frac{\partial z_i}{\partial z_j} - \frac{e^{z_j}}{\sum_{l=1}^{n} e^{z_l}}                                                                                    \\
+   & =  \frac{\partial z_i}{\partial z_j} - \sigma_j                                                                                                                  \\
+\end{align*}
+$\frac{\partial}{\partial z_j} z_i$ ergibt immer $0$, außer wenn $z_i$ und $z_j$ identisch sind, also $i = j$, dann ergibt der Term $1$. Dies kann mit dem Kronecker-Delta $\delta$ vereinfacht dargestellt werden:
+\[
+  \begin{aligned}
+    \frac{\partial z_i}{\partial z_j} & = \begin{cases}
+                                            1 & \text{für} \ i = j \\
+                                            0 & \text{sonst}
+                                          \end{cases} \\
+    \delta_{i,j}                      & = \begin{cases}
+                                            1 & \text{für} \ i = j \\
+                                            0 & \text{sonst}
+                                          \end{cases} \\
+    \frac{\partial z_i}{\partial z_j} & = \delta_{i,j}
+  \end{aligned}
+\]
+
+Also ist die vereinfachte Ableitung des Terms wie folgt:
+\[
+  \frac{\partial \ln(\sigma_i)}{\partial z_j} = \delta_{i,j} - \sigma_j
+\]
+
+Dieser kann nun wieder die gesamte Formel eingesetzt werden:
+\[
+  \begin{aligned}
+    \frac{\partial H(\sigma_i) }{\partial z_j}
+     & = - \sum_{i=1}^{d_o} y_i \cdot \frac{\partial}{\partial z_j} \ln(\sigma_i)     \\
+     & = - \sum_{i=1}^{d_o} y_i \cdot ( \delta_{i,j} - \sigma_j )                     \\
+     & = \sum_{i=1}^{d_o} y_i \cdot \sigma_j -\sum_{i=1}^{d_o} y_i \cdot \delta_{i,j} \\
+  \end{aligned}
+\]
+
+Es gilt $\sum_{i=1}^{d_o} y_i \cdot \delta_{i,j} = y_j$, da der Rest die restlichen Summanden $0$ ergeben:
+\[
+  \begin{aligned}
+    \sum_{i=1}^{d_o} y_i \cdot \delta_{i,j}
+     & = y_1 \cdot \delta_{1,j} + \dots + y_j \cdot \delta_{j,j} + \dots + y_c \cdot \delta_{d_o,j} \\
+     & = y_1 \cdot 0 + \dots + y_j \cdot 1 + \dots + y_{d_o} \cdot 0                                \\
+     & = y_j
+  \end{aligned}
+\]
+
+Die Ableitung lautet nun also:
+\[
+  \begin{aligned}
+    \frac{\partial H(\sigma_i) }{\partial z_j}
+     & = \sum_{i=1}^{d_o} y_i \cdot \sigma_j - y_j \\
+     & = \sigma_j \sum_{i=1}^{d_o} y_i - y_j
+  \end{aligned}
+\]
+
+Da bei der Klassifizierung $\vec{y}$ immer nur eine Klasse den Wert $1$ hat, ist $\sum_{i=1}^{d_o} y_i = 1$:
+\[
+  \begin{aligned}
+    \frac{\partial H(\sigma_i) }{\partial z_j}
+     & = \sigma_j \sum_{i=1}^{d_o} y_i - y_j \\
+     & = \sigma_j - y_j
+  \end{aligned}
+\]
+
+Die Finale Ableitung für die Kreuentropie der Softmax-Funktion in der letzten Schicht des ANNs lautet also:
+\[
+  \frac{dH(\mathbf{\hat{y}}, \vec{y}) }{d\vec{z}} = \mathbf{\hat{y}} - \vec{y}
+\]
+
+\newpage
+
+\subsection{Ableitung der ReLU-Funktion}
+
+Die Ableitung der ReLU-Funktion $R(z)$ ist simpler als die der vorigen, da sie nur mit einer Definitions- und Zielmenge von $\mathbb{R}$ arbeitet, hat jedoch die Besonderheit, dass sie, siehe Abbildung \ref{fig:drelu}, bei der Stelle $z = 0$ einen Sprung hat und somit an dieser Stelle keine Ableitung besitzt. Im Kontext des ANN hat dies jedoch keinen großen Einfluss auf das Netz, somit wird hier $R'(0)=0$ angenommen. Die Ableitung lautet also wie folgt:
+\[
+  \begin{aligned}
+    R(z)             & = \begin{cases}
+                           z & \text{f"ur} \ z \geq 0 \\
+                           0 & \text{f"ur} \ z < 0
+                         \end{cases} \\
+                     & = \max(0, z)                 \\
+    \frac{dR(z)}{dz} & = \begin{cases}
+                           1 & \text{f"ur} \ z > 0 \\
+                           0 & \text{f"ur} \ z < 0
+                         \end{cases}    \\
+                     & \approx z > 0
+  \end{aligned}
+\]
+
+$z > 0$ stellt hier einen Wert im Sinne der booleschen Algebra dar, ist also $0$ wenn nicht zutreffend, und $1$ wenn zutreffend.
+
+\begin{figure}[H]
+
+  \begin{tikzpicture}
+    \begin{axis}[
+        width = \textwidth,
+        height = 0.5\textwidth,
+        grid = both,
+        minor tick num = 1,
+        major grid style = {lightgray},
+        minor grid style = {lightgray!25},
+        xmin=-5, xmax=5,
+        % ymin=-5, ymax=5,
+        axis lines = middle,
+        xtick={-5,...,5},
+      ]
+      \addplot[
+        domain=-5:5,
+        blue,
+        thick
+      ] {max(0, x)};
+      \addlegendentry{ReLU}
+
+      \addplot[
+        domain=-5:5,
+        red,
+        thick,
+        jump mark right
+      ] {less(0, x)};
+      \addlegendentry{\(d\)ReLU}
+
+    \end{axis}
+  \end{tikzpicture}
+
+  \caption{Die ReLU-Funktion und ihre Ableitung}
+  \label{fig:drelu}
+\end{figure}
+
+
+\subsection{Finaler Gradient}
+
+Mit den Ableitungen von den Aktivierungsfunktionen kann nun der Gradient vollständig mathematisch definiert werden. Hierbei wird zwischen den Parametern der letzten Schicht, der Ausgangsschicht, und den der vorigen, den versteckten Schichten, unterschieden, da die letzteren, wie in der Formel zu sehen, jeweils eine partielle Ableitung der nächsten Schicht als Faktor haben.
+
+Die partiellen Ableitungen der Ausgangsschicht sind:
+\begin{alignat*}{2}
+  \frac{\partial \ell}{\partial \vec{a}^{[L-1]}}
+   & = \frac{\partial H(\vec{a}^{[L]})}{\partial \vec{a}^{[L]}} \cdot \frac{\partial \vec{a}^{[L]}}{\partial z^{[L-1]}}  \cdot W^{[L-1]}       &  & = (\vec{a}^{[L]} - \vec{y}) \cdot W^{[L-1]}       \\
+  \frac{\partial \ell}{\partial W^{[L-1]}}
+   & = \frac{\partial H(\vec{a}^{[L]})}{\partial \vec{a}^{[L]}} \cdot \frac{\partial \vec{a}^{[L]}}{\partial z^{[L-1]}}  \cdot \vec{a}^{[L-1]} &  & = (\vec{a}^{[L]} - \vec{y}) \cdot \vec{a}^{[L-1]} \\
+  \frac{\partial \ell}{\partial \vec{b}^{[L-1]}}
+   & = \frac{\partial H(\vec{a}^{[L]})}{\partial \vec{a}^{[L]}} \cdot \frac{\partial \vec{a}^{[L]}}{\partial z^{[L-1]}}                        &  & = (\vec{a}^{[L]} - \vec{y})
+\end{alignat*}
+
+Die partiellen Ableitungen der versteckten Schichten können durch folgende Terme beschrieben werden:
+\begin{alignat*}{2}
+  \frac{\partial \ell}{\partial \vec{a}^{[l]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot \frac{\partial \vec{a}^{[l+1]}}{\partial \vec{z}^{[l]}} \cdot W^{[l]}       &  & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot (\vec{z}^{[l]} > 0) \cdot W^{[l]}       \\
+  \frac{\partial \ell}{\partial W^{[l]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot \frac{\partial \vec{a}^{[l+1]}}{\partial \vec{z}^{[l]}} \cdot \vec{a}^{[l]} &  & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot (\vec{z}^{[l]} > 0) \cdot \vec{a}^{[l]} \\
+  \frac{\partial \ell}{\partial \vec{b}^{[l]}}
+   & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot \frac{\partial \vec{a}^{[l+1]}}{\partial \vec{z}^{[l]}}                     &  & = \frac{\partial \ell}{\partial \vec{a}^{[l+1]}} \cdot (\vec{z}^{[l]} > 0)
+\end{alignat*}
+
+Letzendlich können die partiellen Ableitungen also als ein einfacher Algorithmus dargestellt werden, welcher jeweils auf den Gradienten der nächsteren Schicht basiert. Es ist hier also sinnvoll, bei einer Implementation dieses Algorithmuses bei der letzten Schicht anzufangen und sich \enquote{zurückzuarbeiten}. Deswegen wird diese Strategie, zusammen mit der in Kapitel \ref{sec:optimierung} beschriebenen Optimierung, \textit{Rückpropagierung} genannt und bildet den letzten wichtigen Schritt im Verständnis des Lernprozesses eines ANNs \autocite[Kapitel 2]{nielsenNeuralNetworksDeep2015}.
+
+\section{Fazit und Selbstreflexion}
+
+Nachdem ich meine Leitfrage also in Form der obigen sechs Formeln beantworten konnte und über die letzten Monate die Funktionsweise des Feedforward-Netzwerks verstanden hatte, konnte ich mich also an die Implementation eines solchen machen. Die Analyse des Quelltextes überschreitet den Rahmen dieser Ausarbeitung, dieser ist jedoch auf \url{https://github.com/RisGar/bll} einzusehen.
+
+Das Ergebnis meiner Implementation ist ein Netzwerk, welches aus einem Satz von 10.000 28$\times$28 Pixel großen schwarz-weiß Bildern von Kleidungsartikeln aus dem \enquote{Fashion MNIST}-Datensatz von Zalando Research, verfügbar unter \url{https://github.com/zalandoresearch/fashion-mnist}, nach etwa 1000 Epochen eine Genauigkeit von 86\% richtigen Klassifikationen erzielt. Nach mehr Epochen schien sich diese Genauigkeit jedoch nicht groß zu verändern, was darauf schließen lässt, dass für ein solches Problem ein komplexeres ANN benötigt wird.
+
+Meine Leitfrage und Ausarbeitung explizit auf die theoretische und mathematische Seite von ANNs zu beziehen, hat mir bei der technischen Implementation eines ANNs dabei geholfen, den Code den ich schrieb, auch wirklich zu verstehen und nicht, wozu man oft in Versuchung kommt, Quelltext aus diversen Online-Quellen zu beziehen, auch wenn man diesen nicht vollständig versteht. Deswegen werde ich mich auf jeden Fall weiter mit dem Thema beschäftigen und meine programmatische Implementation weiterführen.
+
+Neuronale Netzwerke werden in unserer heutigen Zeit immer wichtiger und sind nicht nur interessant für große Cloud-Anbieter von AI-Diensten wie OpenAI, aber auch für lokale Anwendungszwecke. Zwar sind moderne neuronale Netzwerke wie GPT-4, mit dem ChatGPT läuft, unglaublich komplex, aber wie mit dieser Ausarbeitung gezeigt wurde, ist die Essenz von neuronalen Netzwerken sehr simpel und das reine Verarbeiten von Eingaben zu Ausgaben in einem ANN kann so selbst direkt auf sogar den kleinsten Geräten durchgeführt werden, die Möglichkeiten sind also unendlich.
+
+\newpage
+\printbibliography[heading=bibintoc, title={Literaturverweise}]
+
+\end{document}
+% END content
